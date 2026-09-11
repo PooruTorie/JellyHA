@@ -601,7 +601,7 @@ async def _build_album_tracks(coordinator, entry_id: str, album_id: str) -> Brow
         "Recursive": "true",
         "IncludeItemTypes": "Audio",
         "ParentId": album_id,
-        "Fields": "AlbumArtist,Artists,RunTimeTicks",
+        "Fields": "AlbumArtist,Artists,RunTimeTicks,Container",
     }
     result = await api._request("GET", "/Items", params=params)
     raw_tracks = result.get("Items", [])
@@ -612,13 +612,14 @@ async def _build_album_tracks(coordinator, entry_id: str, album_id: str) -> Brow
         track_name = track.get("Name", "Unknown Track")
         index = track.get("IndexNumber")
         title = f"{index}. {track_name}" if index else track_name
+        mime_type = _audio_mime_type(track.get("Container"))
 
         children.append(
             BrowseMedia(
                 title=title,
                 media_class=MediaClass.TRACK,
                 media_content_id=build_item_id("item", track_id),
-                media_content_type=MediaType.MUSIC,
+                media_content_type=mime_type,
                 can_play=True,
                 can_expand=False,
                 thumbnail=_signed_image_url(coordinator.hass, entry_id, album_id),
@@ -630,8 +631,8 @@ async def _build_album_tracks(coordinator, entry_id: str, album_id: str) -> Brow
         title=album_title,
         media_class=MediaClass.ALBUM,
         media_content_id=build_item_id("album", album_id),
-        media_content_type=MediaType.MUSIC,
-        can_play=True,
+        media_content_type=MediaType.ALBUM,
+        can_play=False,
         can_expand=True,
         children=children,
     )
@@ -742,6 +743,27 @@ async def _build_item_details(coordinator, entry_id: str, item_id: str) -> Brows
     item = next((i for i in items if i.get("id") == item_id), None)
 
     if not item:
+        # Music tracks and deeper items might not be in the library sync cache;
+        # fetch directly from API
+        try:
+            api = coordinator._api
+            user_id = coordinator.entry.data.get("user_id")
+            if api and user_id:
+                raw = await api.get_item(user_id, item_id)
+                if raw:
+                    media_class, media_type = _classify_raw_item(raw.get("Type"), raw.get("Container"))
+                    return BrowseMedia(
+                        title=raw.get("Name", "Unknown"),
+                        media_class=media_class,
+                        media_content_id=build_item_id("item", item_id),
+                        media_content_type=media_type,
+                        can_play=True,
+                        can_expand=False,
+                        thumbnail=_signed_image_url(coordinator.hass, entry_id, item_id),
+                    )
+        except Exception as err:
+            _LOGGER.debug("Could not fetch item details from API for %s: %s", item_id, err)
+
         return BrowseMedia(
             title="Not Found",
             media_class=MediaClass.VIDEO,
@@ -832,23 +854,37 @@ async def async_browse_media_search(
     )
 
 
-# ─── Helpers ──────────────────────────────────────────────────────────────────
+def _audio_mime_type(container: str | None = None) -> str:
+    """Return the audio MIME type for a given container."""
+    c = (container or "").lower()
+    if c == "flac":
+        return "audio/flac"
+    if c in ("m4a", "aac"):
+        return "audio/mp4"
+    if c in ("ogg", "oga"):
+        return "audio/ogg"
+    if c == "wav":
+        return "audio/wav"
+    return "audio/mpeg"
+
 
 def _classify_item(item: dict[str, Any]) -> tuple[MediaClass, str]:
     """Classify a cached item (lowercase 'type' key) into MediaClass and MediaType."""
     item_type = item.get("type", "")
-    return _classify_raw_item(item_type)
+    container = item.get("container")
+    return _classify_raw_item(item_type, container)
 
 
-def _classify_raw_item(item_type: str) -> tuple[MediaClass, str]:
+def _classify_raw_item(item_type: str, container: str | None = None) -> tuple[MediaClass, str]:
     """Classify a Jellyfin item type string into MediaClass and MediaType."""
+    if item_type == "Audio":
+        return (MediaClass.TRACK, _audio_mime_type(container))
     mapping = {
         "Movie": (MediaClass.MOVIE, MediaType.MOVIE),
         "Series": (MediaClass.TV_SHOW, MediaType.TVSHOW),
         "Episode": (MediaClass.EPISODE, MediaType.EPISODE),
-        "Audio": (MediaClass.TRACK, MediaType.MUSIC),
-        "MusicAlbum": (MediaClass.ALBUM, MediaType.MUSIC),
-        "MusicArtist": (MediaClass.ARTIST, MediaType.MUSIC),
+        "MusicAlbum": (MediaClass.ALBUM, MediaType.ALBUM),
+        "MusicArtist": (MediaClass.ARTIST, MediaType.ARTIST),
         "MusicVideo": (MediaClass.VIDEO, MediaType.VIDEO),
         "Video": (MediaClass.VIDEO, MediaType.VIDEO),
         "Playlist": (MediaClass.PLAYLIST, MediaType.PLAYLIST),
@@ -913,7 +949,7 @@ async def _build_playlist_items(coordinator, entry_id: str, playlist_id: str) ->
         "UserId": user_id,
         "ParentId": playlist_id,
         "Recursive": "true",
-        "Fields": "AlbumArtist,Artists,RunTimeTicks,Genres,ProductionYear",
+        "Fields": "AlbumArtist,Artists,RunTimeTicks,Genres,ProductionYear,Container",
     }
     result = await api._request("GET", "/Items", params=params)
     raw_items = result.get("Items", [])
@@ -922,7 +958,7 @@ async def _build_playlist_items(coordinator, entry_id: str, playlist_id: str) ->
     for item in raw_items:
         item_id = item.get("Id", "")
         item_type = item.get("Type", "")
-        media_class, media_type = _classify_raw_item(item_type)
+        media_class, media_type = _classify_raw_item(item_type, item.get("Container"))
 
         name = item.get("Name", "Unknown")
         artist = item.get("AlbumArtist", "")
@@ -948,7 +984,7 @@ async def _build_playlist_items(coordinator, entry_id: str, playlist_id: str) ->
         media_class=MediaClass.PLAYLIST,
         media_content_id=build_item_id("playlist", playlist_id),
         media_content_type=MediaType.PLAYLIST,
-        can_play=True,
+        can_play=False,
         can_expand=True,
         children=children,
     )

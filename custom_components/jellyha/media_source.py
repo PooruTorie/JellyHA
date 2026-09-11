@@ -48,6 +48,7 @@ class JellyHAMediaSource(MediaSource):
              raise Unresolvable("Invalid identifier format. Expected entry_id/type/item_id")
              
         entry_id = parts[0]
+        category = parts[1]
         item_id = parts[2]
         
         entry = self.hass.config_entries.async_get_entry(entry_id)
@@ -58,17 +59,44 @@ class JellyHAMediaSource(MediaSource):
         api = coordinator._api
         if not api:
             raise Unresolvable("API not available")
+
+        user_id = coordinator.entry.data.get("user_id")
+
+        # If an album or playlist is requested, resolve its first playable track
+        if category in ("album", "playlist"):
+            try:
+                tracks_result = await api._request(
+                    "GET",
+                    "/Items",
+                    params={
+                        "UserId": user_id,
+                        "ParentId": item_id,
+                        "IncludeItemTypes": "Audio",
+                        "SortBy": "IndexNumber",
+                        "SortOrder": "Ascending",
+                        "Limit": 1,
+                        "Recursive": "true",
+                    },
+                )
+                items = tracks_result.get("Items", [])
+                if items:
+                    item_id = items[0]["Id"]
+                else:
+                    raise Unresolvable(f"No tracks found in {category} {item_id}")
+            except Exception as e:
+                _LOGGER.error("Failed to resolve %s %s: %s", category, item_id, e)
+                raise Unresolvable(f"Cannot resolve {category}: {e}") from e
             
         # Detect item type and MIME type
         item_type = "Video"
         mime = "video/mp4"
+        filename = None
         try:
-            user_id = coordinator.entry.data.get("user_id")
             item_info = await api.get_item(user_id, item_id)
             item_type = item_info.get("Type", "Video")
+            container = item_info.get("Container", "mp3").lower() if item_type == "Audio" else "mp4"
             
             if item_type == "Audio":
-                container = item_info.get("Container", "mp3").lower()
                 if container == "flac":
                     mime = "audio/flac"
                 elif container in ["m4a", "aac"]:
@@ -79,11 +107,14 @@ class JellyHAMediaSource(MediaSource):
                     mime = "audio/wav"
                 else:
                     mime = "audio/mpeg"
+            
+            # Construct friendly filename for stream URL so players display Title & Artist
+            filename = self._build_friendly_filename(item_info, container)
         except Exception:
             pass
 
         # Use signed proxy URL — no API key exposed to the client
-        stream_path = api.get_stream_path(entry_id, item_id, item_type)
+        stream_path = api.get_stream_path(entry_id, item_id, item_type, filename=filename)
         signed_url = async_sign_path(self.hass, stream_path, timedelta(hours=24))
         
         return PlayMedia(signed_url, mime)
@@ -195,3 +226,43 @@ class JellyHAMediaSource(MediaSource):
             children=children,
             children_media_class=MediaClass.DIRECTORY, # Ensure children have media class if needed
         )
+
+    @staticmethod
+    def _build_friendly_filename(item_info: dict[str, Any], container: str) -> str:
+        """Build a friendly filename from item metadata (e.g. Artist - Title.ext)."""
+        import re
+
+        item_type = item_info.get("Type", "")
+        name = item_info.get("Name", "").strip()
+
+        if item_type == "Audio":
+            artists = item_info.get("Artists", [])
+            artist = ", ".join(artists) if artists else item_info.get("AlbumArtist", "")
+            if artist and name:
+                base = f"{artist} - {name}"
+            else:
+                base = name or "audio"
+        elif item_type == "Episode":
+            series = item_info.get("SeriesName", "")
+            season_num = item_info.get("ParentIndexNumber")
+            ep_num = item_info.get("IndexNumber")
+            if series and season_num is not None and ep_num is not None:
+                base = f"{series} - S{season_num:02d}E{ep_num:02d} - {name}"
+            elif series and name:
+                base = f"{series} - {name}"
+            else:
+                base = name or "video"
+        elif item_type == "Movie":
+            year = item_info.get("ProductionYear")
+            if year and name:
+                base = f"{name} ({year})"
+            else:
+                base = name or "video"
+        else:
+            base = name or "media"
+
+        safe_base = re.sub(r'[/\\?%*:|"<>#]', "_", base).strip(" ._")
+        if not safe_base:
+            safe_base = "media"
+        return f"{safe_base}.{container}"
+

@@ -510,12 +510,22 @@ class JellyfinApiClient:
         prefix = "Audio" if item_type == "Audio" else "Videos"
         return f"{self._server_url}/{prefix}/{item_id}/stream?static=true&api_key={self._api_key}&ApiKey={self._api_key}"
 
-    def get_stream_path(self, entry_id: str, item_id: str, item_type: str = "Video") -> str:
+    def get_stream_path(
+        self,
+        entry_id: str,
+        item_id: str,
+        item_type: str = "Video",
+        filename: str | None = None,
+    ) -> str:
         """Get the internal HA proxy path for streaming (no API key exposed).
 
         This path is meant to be signed via async_sign_path() before use.
         """
         prefix = "Audio" if item_type == "Audio" else "Videos"
+        if filename:
+            import urllib.parse
+            safe_filename = urllib.parse.quote(filename)
+            return f"/api/jellyha/stream/{entry_id}/{item_id}/{safe_filename}?media_type={prefix}"
         return f"/api/jellyha/stream/{entry_id}/{item_id}?media_type={prefix}"
 
     async def update_favorite(self, user_id: str, item_id: str, is_favorite: bool) -> bool:

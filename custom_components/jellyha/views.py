@@ -131,6 +131,7 @@ class JellyHAStreamView(HomeAssistantView):
     """View to proxy Jellyfin media streams without exposing the API key."""
 
     url = "/api/jellyha/stream/{entry_id}/{item_id}"
+    extra_urls = ["/api/jellyha/stream/{entry_id}/{item_id}/{filename}"]
     name = "api:jellyha:stream"
     requires_auth = False
 
@@ -139,7 +140,7 @@ class JellyHAStreamView(HomeAssistantView):
         self.hass = hass
 
     async def get(
-        self, request: web.Request, entry_id: str, item_id: str
+        self, request: web.Request, entry_id: str, item_id: str, filename: str | None = None
     ) -> web.Response:
         """Handle stream request."""
         # Auth check (same as image proxy)
@@ -191,6 +192,10 @@ class JellyHAStreamView(HomeAssistantView):
                 response.headers["Content-Type"] = content_type
                 if "Content-Length" in resp.headers:
                     response.headers["Content-Length"] = resp.headers["Content-Length"]
+                if "Accept-Ranges" in resp.headers:
+                    response.headers["Accept-Ranges"] = resp.headers["Accept-Ranges"]
+                if filename:
+                    response.headers["Content-Disposition"] = f'inline; filename="{filename}"'
 
                 await response.prepare(request)
 
