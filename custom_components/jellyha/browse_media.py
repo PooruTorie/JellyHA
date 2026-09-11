@@ -705,24 +705,88 @@ async def _build_recent_list(coordinator, entry_id: str) -> BrowseMedia:
 
 
 async def _build_favorites_list(coordinator, entry_id: str) -> BrowseMedia:
-    """Build list of favorite items."""
-    items = coordinator.data.get("items", []) if coordinator.data else []
-    favorites = [i for i in items if i.get("is_favorite", False)]
+    """Build list of favorite items across all media types."""
+    api = coordinator._api
+    user_id = coordinator.entry.data.get("user_id")
+
+    raw_favorites = []
+    if api and user_id:
+        try:
+            raw_favorites = await api.get_favorite_items(user_id)
+        except Exception as err:
+            _LOGGER.debug("Could not fetch favorites from API: %s", err)
 
     children = []
-    for item in favorites:
-        media_class, media_type = _classify_item(item)
-        children.append(
-            BrowseMedia(
-                title=f"{item.get('name', 'Unknown')} ({item.get('year', '')})",
-                media_class=media_class,
-                media_content_id=build_item_id("item", item.get("id", "")),
-                media_content_type=media_type,
-                can_play=True,
-                can_expand=False,
-                thumbnail=item.get("poster_url"),
+    if raw_favorites:
+        for item in raw_favorites:
+            item_id = item.get("Id", "")
+            item_type = item.get("Type", "")
+            container = item.get("Container")
+            media_class, media_type = _classify_raw_item(item_type, container)
+
+            name = item.get("Name", "Unknown")
+            if item_type == "Audio":
+                artists = item.get("Artists", [])
+                artist = ", ".join(artists) if artists else item.get("AlbumArtist", "")
+                title = f"{artist} - {name}" if artist else name
+            elif item_type == "Episode":
+                series_name = item.get("SeriesName", "")
+                season_num = item.get("ParentIndexNumber")
+                ep_num = item.get("IndexNumber")
+                if series_name and season_num is not None and ep_num is not None:
+                    title = f"{series_name} S{season_num:02d}E{ep_num:02d} - {name}"
+                elif series_name:
+                    title = f"{series_name} - {name}"
+                else:
+                    title = name
+            elif item_type in ("Movie", "Series", "MusicAlbum"):
+                year = item.get("ProductionYear", "")
+                title = f"{name} ({year})" if year else name
+            else:
+                title = name
+
+            can_expand = item_type in ("Series", "Season", "MusicAlbum", "MusicArtist", "Playlist", "BoxSet")
+            can_play = not can_expand
+
+            if item_type == "Series":
+                content_id = build_item_id("show", item_id)
+            elif item_type == "MusicAlbum":
+                content_id = build_item_id("album", item_id)
+            elif item_type == "MusicArtist":
+                content_id = build_item_id("artist", item_id)
+            elif item_type == "Playlist":
+                content_id = build_item_id("playlist", item_id)
+            else:
+                content_id = build_item_id("item", item_id)
+
+            children.append(
+                BrowseMedia(
+                    title=title,
+                    media_class=media_class,
+                    media_content_id=content_id,
+                    media_content_type=media_type,
+                    can_play=can_play,
+                    can_expand=can_expand,
+                    thumbnail=_signed_image_url(coordinator.hass, entry_id, item_id),
+                )
             )
-        )
+    else:
+        # Fallback to local coordinator items
+        items = coordinator.data.get("items", []) if coordinator.data else []
+        favorites = [i for i in items if i.get("is_favorite", False)]
+        for item in favorites:
+            media_class, media_type = _classify_item(item)
+            children.append(
+                BrowseMedia(
+                    title=f"{item.get('name', 'Unknown')} ({item.get('year', '')})",
+                    media_class=media_class,
+                    media_content_id=build_item_id("item", item.get("id", "")),
+                    media_content_type=media_type,
+                    can_play=True,
+                    can_expand=False,
+                    thumbnail=item.get("poster_url"),
+                )
+            )
 
     return BrowseMedia(
         title="Favorites",

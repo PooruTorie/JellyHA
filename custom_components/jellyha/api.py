@@ -446,6 +446,24 @@ class JellyfinApiClient:
             _LOGGER.debug("Could not fetch favorite series IDs: %s", err)
             return set()
 
+    async def get_favorite_items(self, user_id: str, limit: int = 100) -> list[dict[str, Any]]:
+        """Get all favorite items for a user (movies, series, episodes, songs, albums)."""
+        try:
+            params = {
+                "UserId": user_id,
+                "Filters": "IsFavorite",
+                "Recursive": "true",
+                "SortBy": "SortName",
+                "SortOrder": "Ascending",
+                "Fields": "PrimaryImageTag,MediaStreams,Container,Overview,Artists,AlbumArtist,SeriesName,SeasonName,ParentIndexNumber,IndexNumber,RunTimeTicks,ProductionYear,UserData",
+                "Limit": limit,
+            }
+            res = await self._request("GET", f"/Users/{user_id}/Items", params=params)
+            return res.get("Items", []) if isinstance(res, dict) else []
+        except Exception as err:
+            _LOGGER.error("Failed to fetch favorite items for user %s: %s", user_id, err)
+            return []
+
     async def get_similar_items(self, user_id: str, item_id: str, limit: int = 5) -> list[dict[str, Any]]:
         """Get similar items (recommendations) for a specific item."""
         # Reduced fields for optimization
