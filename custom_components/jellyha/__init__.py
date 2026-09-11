@@ -43,6 +43,15 @@ PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.MEDIA_PLAYER]
 # Type alias for the config entry
 JellyHAConfigEntry = ConfigEntry[JellyHAData]
 
+__all__ = [
+    "DOMAIN",
+    "JellyHAConfigEntry",
+    "JellyHAData",
+    "async_setup_entry",
+    "async_unload_entry",
+    "async_reload_entry",
+]
+
 
 
 

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from datetime import datetime
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
@@ -24,7 +24,9 @@ from .coordinator import JellyHALibraryCoordinator, JellyHASessionCoordinator
 from .device import get_device_info
 from .ws_client import JellyfinWebSocketClient
 from .media_strategy import MediaStrategy
-from . import JellyHAConfigEntry
+
+if TYPE_CHECKING:
+    from . import JellyHAConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 

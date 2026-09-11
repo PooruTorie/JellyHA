@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.media_player import (
     BrowseMedia,
@@ -32,7 +32,9 @@ from .const import (
 from .coordinator import JellyHALibraryCoordinator, JellyHASessionCoordinator
 from .device import get_device_info
 from .media_strategy import MediaStrategy
-from . import JellyHAConfigEntry
+
+if TYPE_CHECKING:
+    from . import JellyHAConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
