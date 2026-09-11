@@ -673,25 +673,104 @@ async def _build_homevideos_list(coordinator, entry_id: str) -> BrowseMedia:
 # ─── Recently Added & Favorites ───────────────────────────────────────────────
 
 async def _build_recent_list(coordinator, entry_id: str) -> BrowseMedia:
-    """Build list of recently added items."""
-    items = coordinator.data.get("items", []) if coordinator.data else []
-    # Items are already sorted by date_added descending
-    recent = items[:20]
+    """Build list of recently added items scoped to integration's authorized libraries."""
+    api = coordinator._api
+    user_id = coordinator.entry.data.get("user_id")
+    selected_libraries = coordinator.entry.options.get("libraries") or coordinator.entry.data.get("libraries", [])
+
+    raw_recent = []
+    if api and user_id:
+        try:
+            raw_recent = await api.get_latest_items(
+                user_id=user_id,
+                limit=20,
+                library_ids=selected_libraries if selected_libraries else None,
+            )
+        except Exception as err:
+            _LOGGER.debug("Could not fetch latest items from API: %s", err)
 
     children = []
-    for item in recent:
-        media_class, media_type = _classify_item(item)
-        children.append(
-            BrowseMedia(
-                title=f"{item.get('name', 'Unknown')} ({item.get('year', '')})",
-                media_class=media_class,
-                media_content_id=build_item_id("item", item.get("id", "")),
-                media_content_type=media_type,
-                can_play=True,
-                can_expand=False,
-                thumbnail=item.get("poster_url"),
+    if raw_recent:
+        for item in raw_recent:
+            item_id = item.get("Id", "")
+            item_type = item.get("Type", "")
+            container = item.get("Container")
+            media_class, media_type = _classify_raw_item(item_type, container)
+
+            name = item.get("Name", "Unknown")
+            if item_type == "Audio":
+                artists = item.get("Artists", [])
+                artist = ", ".join(artists) if artists else item.get("AlbumArtist", "")
+                title = f"{artist} - {name}" if artist else name
+            elif item_type == "Episode":
+                series_name = item.get("SeriesName", "")
+                season_num = item.get("ParentIndexNumber")
+                ep_num = item.get("IndexNumber")
+                if series_name and season_num is not None and ep_num is not None:
+                    title = f"{series_name} S{season_num:02d}E{ep_num:02d} - {name}"
+                elif series_name:
+                    title = f"{series_name} - {name}"
+                else:
+                    title = name
+            elif item_type == "MusicAlbum":
+                year = item.get("ProductionYear", "")
+                artists = item.get("Artists", [])
+                artist = ", ".join(artists) if artists else item.get("AlbumArtist", "")
+                if artist and year:
+                    title = f"{artist} - {name} ({year})"
+                elif artist:
+                    title = f"{artist} - {name}"
+                elif year:
+                    title = f"{name} ({year})"
+                else:
+                    title = name
+            elif item_type in ("Movie", "Series"):
+                year = item.get("ProductionYear", "")
+                title = f"{name} ({year})" if year else name
+            else:
+                title = name
+
+            can_expand = item_type in ("Series", "Season", "MusicAlbum", "MusicArtist", "Playlist", "BoxSet")
+            can_play = not can_expand
+
+            if item_type == "Series":
+                content_id = build_item_id("show", item_id)
+            elif item_type == "MusicAlbum":
+                content_id = build_item_id("album", item_id)
+            elif item_type == "MusicArtist":
+                content_id = build_item_id("artist", item_id)
+            elif item_type == "Playlist":
+                content_id = build_item_id("playlist", item_id)
+            else:
+                content_id = build_item_id("item", item_id)
+
+            children.append(
+                BrowseMedia(
+                    title=title,
+                    media_class=media_class,
+                    media_content_id=content_id,
+                    media_content_type=media_type,
+                    can_play=can_play,
+                    can_expand=can_expand,
+                    thumbnail=_signed_image_url(coordinator.hass, entry_id, item_id),
+                )
             )
-        )
+    else:
+        # Fallback to local coordinator items
+        items = coordinator.data.get("items", []) if coordinator.data else []
+        for item in items[:20]:
+            media_class, media_type = _classify_item(item)
+            children.append(
+                BrowseMedia(
+                    title=f"{item.get('name', 'Unknown')} ({item.get('year', '')})",
+                    media_class=media_class,
+                    media_content_id=build_item_id("item", item.get("id", "")),
+                    media_content_type=media_type,
+                    can_play=True,
+                    can_expand=False,
+                    thumbnail=item.get("poster_url"),
+                )
+            )
 
     return BrowseMedia(
         title="Recently Added",

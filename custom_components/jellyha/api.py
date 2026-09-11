@@ -696,7 +696,7 @@ class JellyfinApiClient:
         """Fetch latest added items for a user."""
         params: dict[str, Any] = {
             "Limit": str(limit),
-            "Fields": "Overview,Genres,OfficialRating,CommunityRating,CriticRating,DateCreated,MediaSources,MediaStreams,PremiereDate,RemoteTrailers,SeriesPrimaryImageTag,ProductionYear,RunTimeTicks,Container",
+            "Fields": "Overview,Genres,OfficialRating,CommunityRating,CriticRating,DateCreated,MediaSources,MediaStreams,PremiereDate,RemoteTrailers,SeriesPrimaryImageTag,ProductionYear,RunTimeTicks,Container,Artists,AlbumArtist,SeriesName,SeasonName,ParentIndexNumber,IndexNumber",
             "GroupItems": "false",
         }
         if item_types:
