@@ -525,7 +525,7 @@ class JellyfinApiClient:
         if filename:
             import urllib.parse
             safe_filename = urllib.parse.quote(filename)
-            return f"/api/jellyha/stream/{entry_id}/{item_id}/{safe_filename}?media_type={prefix}"
+            return f"/api/jellyha/stream/{entry_id}/{prefix}/{item_id}/{safe_filename}"
         return f"/api/jellyha/stream/{entry_id}/{item_id}?media_type={prefix}"
 
     async def update_favorite(self, user_id: str, item_id: str, is_favorite: bool) -> bool:

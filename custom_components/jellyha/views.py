@@ -131,7 +131,10 @@ class JellyHAStreamView(HomeAssistantView):
     """View to proxy Jellyfin media streams without exposing the API key."""
 
     url = "/api/jellyha/stream/{entry_id}/{item_id}"
-    extra_urls = ["/api/jellyha/stream/{entry_id}/{item_id}/{filename}"]
+    extra_urls = [
+        "/api/jellyha/stream/{entry_id}/{item_id}/{filename}",
+        "/api/jellyha/stream/{entry_id}/{media_type}/{item_id}/{filename}",
+    ]
     name = "api:jellyha:stream"
     requires_auth = False
 
@@ -140,7 +143,12 @@ class JellyHAStreamView(HomeAssistantView):
         self.hass = hass
 
     async def get(
-        self, request: web.Request, entry_id: str, item_id: str, filename: str | None = None
+        self,
+        request: web.Request,
+        entry_id: str,
+        item_id: str,
+        media_type: str | None = None,
+        filename: str | None = None,
     ) -> web.Response:
         """Handle stream request."""
         # Auth check (same as image proxy)
@@ -151,8 +159,9 @@ class JellyHAStreamView(HomeAssistantView):
             _LOGGER.warning("Unauthorized stream request for item %s", item_id)
             return web.Response(status=401, text="Unauthorized")
 
-        # media_type is either "Audio" or "Videos"
-        media_type = request.query.get("media_type", "Videos")
+        # media_type can be in path or query parameters (fallback)
+        if not media_type:
+            media_type = request.query.get("media_type", "Videos")
         if media_type not in ("Audio", "Videos"):
             return web.Response(status=400, text="Invalid media_type")
 

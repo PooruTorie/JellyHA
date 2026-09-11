@@ -109,7 +109,7 @@ class JellyHAMediaSource(MediaSource):
                     mime = "audio/mpeg"
             
             # Construct friendly filename for stream URL so players display Title & Artist
-            filename = self._build_friendly_filename(item_info, container)
+            filename = self._build_friendly_filename(item_info)
         except Exception:
             pass
 
@@ -228,8 +228,8 @@ class JellyHAMediaSource(MediaSource):
         )
 
     @staticmethod
-    def _build_friendly_filename(item_info: dict[str, Any], container: str) -> str:
-        """Build a friendly filename from item metadata (e.g. Artist - Title.ext)."""
+    def _build_friendly_filename(item_info: dict[str, Any]) -> str:
+        """Build a clean display title from item metadata (e.g. Artist - Title)."""
         import re
 
         item_type = item_info.get("Type", "")
@@ -264,5 +264,5 @@ class JellyHAMediaSource(MediaSource):
         safe_base = re.sub(r'[/\\?%*:|"<>#]', "_", base).strip(" ._")
         if not safe_base:
             safe_base = "media"
-        return f"{safe_base}.{container}"
+        return safe_base
 
