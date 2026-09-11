@@ -446,8 +446,13 @@ class JellyfinApiClient:
             _LOGGER.debug("Could not fetch favorite series IDs: %s", err)
             return set()
 
-    async def get_favorite_items(self, user_id: str, limit: int = 100) -> list[dict[str, Any]]:
-        """Get all favorite items for a user (movies, series, episodes, songs, albums)."""
+    async def get_favorite_items(
+        self,
+        user_id: str,
+        parent_id: str | None = None,
+        limit: int = 100,
+    ) -> list[dict[str, Any]]:
+        """Get favorite items for a user, optionally scoped to a library parent_id."""
         try:
             params = {
                 "UserId": user_id,
@@ -458,6 +463,8 @@ class JellyfinApiClient:
                 "Fields": "PrimaryImageTag,MediaStreams,Container,Overview,Artists,AlbumArtist,SeriesName,SeasonName,ParentIndexNumber,IndexNumber,RunTimeTicks,ProductionYear,UserData",
                 "Limit": limit,
             }
+            if parent_id:
+                params["ParentId"] = parent_id
             res = await self._request("GET", f"/Users/{user_id}/Items", params=params)
             return res.get("Items", []) if isinstance(res, dict) else []
         except Exception as err:

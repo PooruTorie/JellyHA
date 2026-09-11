@@ -705,14 +705,30 @@ async def _build_recent_list(coordinator, entry_id: str) -> BrowseMedia:
 
 
 async def _build_favorites_list(coordinator, entry_id: str) -> BrowseMedia:
-    """Build list of favorite items across all media types."""
+    """Build list of favorite items scoped to the integration's selected libraries."""
+    import asyncio
     api = coordinator._api
     user_id = coordinator.entry.data.get("user_id")
+    selected_libraries = coordinator.entry.options.get("libraries") or coordinator.entry.data.get("libraries", [])
 
     raw_favorites = []
     if api and user_id:
         try:
-            raw_favorites = await api.get_favorite_items(user_id)
+            if selected_libraries:
+                # Query favorites scoped to each selected library in this integration
+                results = await asyncio.gather(*(
+                    api.get_favorite_items(user_id, parent_id=lib_id)
+                    for lib_id in selected_libraries
+                ))
+                seen_ids = set()
+                for lib_items in results:
+                    for it in lib_items:
+                        it_id = it.get("Id")
+                        if it_id and it_id not in seen_ids:
+                            seen_ids.add(it_id)
+                            raw_favorites.append(it)
+            else:
+                raw_favorites = await api.get_favorite_items(user_id)
         except Exception as err:
             _LOGGER.debug("Could not fetch favorites from API: %s", err)
 
