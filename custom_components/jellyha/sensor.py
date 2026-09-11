@@ -26,7 +26,7 @@ from .ws_client import JellyfinWebSocketClient
 from .media_strategy import MediaStrategy
 
 if TYPE_CHECKING:
-    from . import JellyHAConfigEntry
+    from ..jellyha import JellyHAConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 

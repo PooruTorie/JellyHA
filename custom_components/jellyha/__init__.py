@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, TypeAlias
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -41,7 +41,7 @@ class JellyHAData:
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.MEDIA_PLAYER]
 
 # Type alias for the config entry
-JellyHAConfigEntry = ConfigEntry[JellyHAData]
+JellyHAConfigEntry: TypeAlias = ConfigEntry[JellyHAData]
 
 __all__ = [
     "DOMAIN",
