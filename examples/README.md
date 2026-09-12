@@ -41,6 +41,7 @@ Welcome to the **JellyHA Examples & Recipe Library**! Here you will find copy-pa
 | **[System & Library Monitoring Stack](dashboards/system_monitoring_card.yaml)** | Comprehensive vertical stack with server version, WebSocket health, full library breakdown (movies/series/episodes), latest content additions, active & transcoding session gauges, modern storage percentage meter, and sync diagnostics. | `vertical-stack` (Native HA Cards) |
 | **[Library Card Variations](dashboards/library_cards.yaml)** | Curated setups for `jellyha-library-card`: Hero Carousel with auto-swipe, Binge-watching "Next Up", Grid with search bar, and Favorites view. | `custom:jellyha-library-card` |
 | **[Now Playing Card Variations](dashboards/now_playing_cards.yaml)** | Curated setups for `jellyha-now-playing-card` (Backdrop, Minimal, Multi-Instance, Device Player). | `custom:jellyha-now-playing-card` |
+| **[Latest Media Hero Backdrop Cards](dashboards/latest_media_hero_card.yaml)** | Cinematic hero banner cards for newly added movies and episodes featuring backdrop blurring, floating poster art, format pills, and overview text. | `markdown` + `card-mod` |
 
 ---
 
