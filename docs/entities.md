@@ -142,6 +142,17 @@ data:
 | `sensor.jellyha_library_series_watched_percentage` | Percentage of watched series | Percentage (e.g. `42.5` %) | `watched`, `total`, `unwatched`, `entry_id` |
 | `sensor.jellyha_library_episodes_watched_percentage` | Percentage of watched episodes | Percentage (e.g. `68.2` %) | `watched`, `total`, `unwatched`, `entry_id` |
 
+### Live TV Sensor
+
+| Entity ID | Description | State | Key Attributes |
+|---|---|---|---|
+| `sensor.jellyha_live_tv_channels` | Available Jellyfin Live TV channels | Channel count | `channels` |
+
+Each item in the `channels` attribute contains `id`, `number`, `name`,
+`normalized_name`, and an authenticated Home Assistant proxy `image_url` when
+Jellyfin provides channel artwork. The sensor is refreshed with the normal
+JellyHA coordinator refresh.
+
 ### Latest Content Sensors
 
 | Entity ID | Description | State | Key Attributes |
