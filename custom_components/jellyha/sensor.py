@@ -5,7 +5,11 @@ import logging
 from typing import Any
 from datetime import datetime
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.const import UnitOfInformation
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -1445,6 +1449,7 @@ class JellyHAMediaStorageFreePercentSensor(JellyHABaseSensor):
     _attr_icon = "mdi:pie-chart"
     _attr_native_unit_of_measurement = "%"
     _attr_suggested_display_precision = 0
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
@@ -1560,6 +1565,7 @@ class JellyHAMoviesPercentageSensor(JellyHABaseSensor):
     _attr_icon = "mdi:percent"
     _attr_native_unit_of_measurement = "%"
     _attr_suggested_display_precision = 1
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
@@ -1616,6 +1622,7 @@ class JellyHASeriesPercentageSensor(JellyHABaseSensor):
     _attr_icon = "mdi:percent"
     _attr_native_unit_of_measurement = "%"
     _attr_suggested_display_precision = 1
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
@@ -1672,6 +1679,7 @@ class JellyHAEpisodesPercentageSensor(JellyHABaseSensor):
     _attr_icon = "mdi:percent"
     _attr_native_unit_of_measurement = "%"
     _attr_suggested_display_precision = 1
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
