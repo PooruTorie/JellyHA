@@ -23,7 +23,7 @@ import '../editors/jellyha-library-editor';
 import '../components/jellyha-media-item';
 
 // Register card in the custom cards array
-const CARD_VERSION = '1.3.0';
+const CARD_VERSION = '1.3.1';
 
 console.info(
   `%c JELLYHA-LIBRARY-CARD %c v${CARD_VERSION} `,
