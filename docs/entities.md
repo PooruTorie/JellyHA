@@ -160,7 +160,7 @@ data:
 | `sensor.jellyha_transcoding_streams` | Active transcoding streams | Count | `transcode_sessions` (video/audio codecs, transcode reasons, framerate) |
 | `sensor.jellyha_media_storage_free` | Free disk space on media drive | GB (e.g. `13853.9`) | `free_bytes`, `used_bytes`, `total_bytes`, `free_tb`, `used_tb`, `total_tb`, `used_percent`, `free_percent`, `devices` |
 | `sensor.jellyha_media_storage_free_percentage` | Free disk space percentage | Percentage (e.g. `62` %) | `free_bytes`, `used_bytes`, `total_bytes`, `free_gb`, `used_gb`, `free_tb`, `used_tb`, `total_tb`, `used_percent`, `free_percent`, `devices` |
-| `sensor.jellyha_[library_name]_storage_size` | Storage size for individual library (dynamically created for each configured library) | GB (e.g. `450.2`) | `library_id`, `library_name`, `collection_type`, `size_bytes`, `size_mb`, `size_tb`, `percentage_used`, `folders` |
+| `sensor.jellyha_library_[library_name]_storage_size` | Storage size for individual library (dynamically created for each configured library) | GB (e.g. `450.2`) | `library_id`, `library_name`, `collection_type`, `size_bytes`, `size_mb`, `size_tb`, `percentage_used`, `folders` |
 | `sensor.jellyha_last_refresh` | Last API sync timestamp | Timestamp | - |
 | `sensor.jellyha_last_library_update` | Last library change timestamp | Timestamp | - |
 | `sensor.jellyha_refresh_duration` | Duration of last sync cycle | e.g. `0.9s` | `duration_seconds` |
@@ -169,12 +169,12 @@ data:
 
 JellyHA dynamically creates storage size sensors for each configured library (or all libraries if none are specifically configured). These sensors help identify which libraries are consuming the most disk space, making it easier to plan storage management and pruning strategies.
 
-**Sensor Pattern:** `sensor.jellyha_[library_name]_storage_size`
+**Sensor Pattern:** `sensor.jellyha_library_[library_name]_storage_size`
 
 **Examples:**
-- `sensor.jellyha_movies_storage_size`
-- `sensor.jellyha_tv_shows_storage_size`
-- `sensor.jellyha_music_storage_size`
+- `sensor.jellyha_library_movies_storage_size`
+- `sensor.jellyha_library_tv_shows_storage_size`
+- `sensor.jellyha_library_music_storage_size`
 
 Each sensor reports the total storage consumed by that library in gigabytes and includes detailed folder-level breakdowns in its attributes.
 
