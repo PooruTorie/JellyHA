@@ -193,6 +193,15 @@
             },
             "storage_free_percent": {
                 "name": "Odstotek prostega prostora"
+            },
+            "movies_percentage": {
+                "name": "Odstotek ogledanih filmov"
+            },
+            "series_percentage": {
+                "name": "Odstotek ogledanih serij"
+            },
+            "episodes_percentage": {
+                "name": "Odstotek ogledanih epizod"
             }
         },
         "media_player": {

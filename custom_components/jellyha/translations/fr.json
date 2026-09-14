@@ -208,6 +208,15 @@
             },
             "storage_free_percent": {
                 "name": "Pourcentage de stockage libre"
+            },
+            "movies_percentage": {
+                "name": "Pourcentage de films vus"
+            },
+            "series_percentage": {
+                "name": "Pourcentage de séries vues"
+            },
+            "episodes_percentage": {
+                "name": "Pourcentage d'épisodes vus"
             }
         },
         "media_player": {

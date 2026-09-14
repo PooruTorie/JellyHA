@@ -138,6 +138,9 @@ data:
 | `sensor.jellyha_watched_movies` | Watched movies | Count | `entry_id` |
 | `sensor.jellyha_watched_series` | Watched TV series | Count | `entry_id` |
 | `sensor.jellyha_watched_episodes` | Watched episodes | Count | `entry_id` |
+| `sensor.jellyha_movies_percentage` | Percentage of watched movies | Percentage (e.g. `75.3` %) | `watched`, `total`, `unwatched`, `entry_id` |
+| `sensor.jellyha_series_percentage` | Percentage of watched series | Percentage (e.g. `42.5` %) | `watched`, `total`, `unwatched`, `entry_id` |
+| `sensor.jellyha_episodes_percentage` | Percentage of watched episodes | Percentage (e.g. `68.2` %) | `watched`, `total`, `unwatched`, `entry_id` |
 
 ### Latest Content Sensors
 

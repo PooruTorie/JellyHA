@@ -208,6 +208,15 @@
             },
             "storage_free_percent": {
                 "name": "Medienspeicher frei in Prozent"
+            },
+            "movies_percentage": {
+                "name": "Gesehene Filme in Prozent"
+            },
+            "series_percentage": {
+                "name": "Gesehene Serien in Prozent"
+            },
+            "episodes_percentage": {
+                "name": "Gesehene Episoden in Prozent"
             }
         },
         "media_player": {

@@ -5,7 +5,11 @@ import logging
 from typing import TYPE_CHECKING, Any
 from datetime import datetime
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.const import UnitOfInformation
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -63,6 +67,9 @@ async def async_setup_entry(
         JellyHAMoviesCountSensor(coordinator, entry, device_name),
         JellyHASeriesCountSensor(coordinator, entry, device_name),
         JellyHAEpisodesCountSensor(coordinator, entry, device_name),
+        JellyHAMoviesPercentageSensor(coordinator, entry, device_name),
+        JellyHASeriesPercentageSensor(coordinator, entry, device_name),
+        JellyHAEpisodesPercentageSensor(coordinator, entry, device_name),
         JellyHALatestMovieSensor(coordinator, entry, device_name),
         JellyHALatestEpisodeSensor(coordinator, entry, device_name),
         JellyHATranscodingSessionsSensor(session_coordinator, entry, device_name),
@@ -1444,6 +1451,7 @@ class JellyHAMediaStorageFreePercentSensor(JellyHABaseSensor):
     _attr_icon = "mdi:pie-chart"
     _attr_native_unit_of_measurement = "%"
     _attr_suggested_display_precision = 0
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
@@ -1550,3 +1558,180 @@ class JellyHAMediaStorageFreePercentSensor(JellyHABaseSensor):
         }
 
 
+
+
+class JellyHAMoviesPercentageSensor(JellyHABaseSensor):
+    """Sensor for watched movies percentage."""
+
+    _attr_translation_key = "movies_percentage"
+    _attr_icon = "mdi:percent"
+    _attr_native_unit_of_measurement = "%"
+    _attr_suggested_display_precision = 1
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(
+        self,
+        coordinator: JellyHALibraryCoordinator,
+        entry: ConfigEntry,
+        device_name: str,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, entry, device_name, "movies_percentage")
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the percentage of watched movies."""
+        if not self.coordinator.data:
+            return None
+        items = self.coordinator.data.get("items", [])
+        movies = [i for i in items if i.get("type") == "Movie"]
+        
+        if not movies:
+            return None
+        
+        watched = len([i for i in movies if i.get("is_played", False)])
+        total = len(movies)
+        
+        return round((watched / total) * 100, 1) if total > 0 else 0.0
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return additional attributes."""
+        if not self.coordinator.data:
+            return {
+                "entry_id": self._entry.entry_id,
+                "config_entry_id": self._entry.entry_id,
+            }
+        items = self.coordinator.data.get("items", [])
+        movies = [i for i in items if i.get("type") == "Movie"]
+        watched = len([i for i in movies if i.get("is_played", False)])
+        total = len(movies)
+        unwatched = total - watched
+        
+        return {
+            "entry_id": self._entry.entry_id,
+            "config_entry_id": self._entry.entry_id,
+            "watched": watched,
+            "total": total,
+            "unwatched": unwatched,
+        }
+
+
+class JellyHASeriesPercentageSensor(JellyHABaseSensor):
+    """Sensor for watched series percentage."""
+
+    _attr_translation_key = "series_percentage"
+    _attr_icon = "mdi:percent"
+    _attr_native_unit_of_measurement = "%"
+    _attr_suggested_display_precision = 1
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(
+        self,
+        coordinator: JellyHALibraryCoordinator,
+        entry: ConfigEntry,
+        device_name: str,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, entry, device_name, "series_percentage")
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the percentage of watched series."""
+        if not self.coordinator.data:
+            return None
+        items = self.coordinator.data.get("items", [])
+        series = [i for i in items if i.get("type") == "Series"]
+        
+        if not series:
+            return None
+        
+        watched = len([i for i in series if i.get("is_played", False)])
+        total = len(series)
+        
+        return round((watched / total) * 100, 1) if total > 0 else 0.0
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return additional attributes."""
+        if not self.coordinator.data:
+            return {
+                "entry_id": self._entry.entry_id,
+                "config_entry_id": self._entry.entry_id,
+            }
+        items = self.coordinator.data.get("items", [])
+        series = [i for i in items if i.get("type") == "Series"]
+        watched = len([i for i in series if i.get("is_played", False)])
+        total = len(series)
+        unwatched = total - watched
+        
+        return {
+            "entry_id": self._entry.entry_id,
+            "config_entry_id": self._entry.entry_id,
+            "watched": watched,
+            "total": total,
+            "unwatched": unwatched,
+        }
+
+
+class JellyHAEpisodesPercentageSensor(JellyHABaseSensor):
+    """Sensor for watched episodes percentage."""
+
+    _attr_translation_key = "episodes_percentage"
+    _attr_icon = "mdi:percent"
+    _attr_native_unit_of_measurement = "%"
+    _attr_suggested_display_precision = 1
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(
+        self,
+        coordinator: JellyHALibraryCoordinator,
+        entry: ConfigEntry,
+        device_name: str,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, entry, device_name, "episodes_percentage")
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the percentage of watched episodes."""
+        if not self.coordinator.data:
+            return None
+        items = self.coordinator.data.get("items", [])
+        series = [i for i in items if i.get("type") == "Series"]
+        
+        if not series:
+            return None
+        
+        total_episodes = sum((i.get("total_episodes") or 0) for i in series)
+        
+        if total_episodes == 0:
+            return None
+        
+        unwatched_episodes = sum((i.get("unplayed_count") or 0) for i in series)
+        watched_episodes = total_episodes - unwatched_episodes
+        
+        return round((watched_episodes / total_episodes) * 100, 1) if total_episodes > 0 else 0.0
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return additional attributes."""
+        if not self.coordinator.data:
+            return {
+                "entry_id": self._entry.entry_id,
+                "config_entry_id": self._entry.entry_id,
+            }
+        items = self.coordinator.data.get("items", [])
+        series = [i for i in items if i.get("type") == "Series"]
+        
+        total_episodes = sum((i.get("total_episodes") or 0) for i in series)
+        unwatched_episodes = sum((i.get("unplayed_count") or 0) for i in series)
+        watched_episodes = total_episodes - unwatched_episodes
+        
+        return {
+            "entry_id": self._entry.entry_id,
+            "config_entry_id": self._entry.entry_id,
+            "watched": watched_episodes,
+            "total": total_episodes,
+            "unwatched": unwatched_episodes,
+        }

@@ -208,6 +208,15 @@
             },
             "storage_free_percent": {
                 "name": "Процент свободного медиа-хранилища"
+            },
+            "movies_percentage": {
+                "name": "Процент просмотренных фильмов"
+            },
+            "series_percentage": {
+                "name": "Процент просмотренных сериалов"
+            },
+            "episodes_percentage": {
+                "name": "Процент просмотренных эпизодов"
             }
         },
         "media_player": {
