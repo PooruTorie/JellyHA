@@ -5,6 +5,26 @@ All notable changes to JellyHA will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-09-14
+
+### Added
+- **Friendly Stream Filenames & Clean Display Titles**: Generated clean, human-readable display filenames (`Artist - Track Name`, `Series - S01E02 - Episode Name`, `Movie (Year)`) in stream URLs and added `Content-Disposition: inline` headers, ensuring Google Cast devices and external players display proper titles and artist metadata instead of raw Jellyfin GUIDs.
+- **Universal Favorites Support**: Added direct API fetching for user favorites across all media types (audio tracks, albums, artists, series, episodes, and movies) with automatic fallback to local cached items.
+- **Music & Audio Support in Media Browser**: Added full MIME type classification for audio streams (`audio/flac`, `audio/mp4`, `audio/ogg`, `audio/wav`, `audio/mpeg`) and proper MediaClass hierarchy (`TRACK`, `ALBUM`, `ARTIST`) in the media browser.
+- **Album & Playlist Playback Resolution**: Playing a music album or playlist now automatically resolves and plays its first playable track in both the media player and media source integration.
+- **Cinematic Latest Media Hero Card Examples**: Added ready-to-use Lovelace dashboard recipes (`latest_media_hero_card.yaml`) for latest movies and episodes featuring backdrop blurring, floating poster art, format pills, and synopsis text.
+
+### Changed
+- **Library-Scoped Favorites & Recently Added Browsing**: Scoped favorites and recently added media views to the specific authorized libraries configured for each integration instance via `ParentId` filtering.
+- **Active Jellyfin Session Remote Control**: Media player `play_media` requests now automatically route playback to active Jellyfin client sessions for the user, filtering out background clients (Home Assistant and Seerr).
+- **Brand Assets Location**: Relocated brand icons and logos into `custom_components/jellyha/brand/` in accordance with Home Assistant integration standards.
+
+### Fixed
+- **Album Playback & Invalid Media ID Error (Fixes [#25](https://github.com/zupancicmarko/JellyHA/issues/25))**: Resolved `Cannot play: invalid media_id format: jellyha://album/...` errors when initiating playback on albums and playlists by accepting container media categories and resolving their first playable track. Also fixed silent playback failures for individual music tracks by routing requests to active Jellyfin sessions and streaming proxies.
+- **Cast Audio Playback & Streaming Proxies**: Added dedicated proxy endpoints (`/api/jellyha/stream/{entry_id}/{media_type}/{item_id}/{filename}`) with `Accept-Ranges` headers for seamless seeking and streaming on Chromecast devices without exposing API keys.
+- **On-Demand API Fallback for Uncached Media**: Resolved missing metadata or playback failures when browsing deeply nested tracks or uncached items by fetching details on-demand via the Jellyfin API.
+
+
 ## [1.3.0] - 2026-09-11
 
 ### Added

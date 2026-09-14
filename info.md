@@ -1,6 +1,6 @@
 # JellyHA — Jellyfin for Home Assistant
 
-**v1.3.0** · [Full Changelog](https://github.com/zupancicmarko/JellyHA/blob/main/CHANGELOG.md) · [Documentation](https://github.com/zupancicmarko/JellyHA/tree/main/docs)
+**v1.3.1** · [Full Changelog](https://github.com/zupancicmarko/JellyHA/blob/main/CHANGELOG.md) · [Documentation](https://github.com/zupancicmarko/JellyHA/tree/main/docs)
 
 ![JellyHA Library Card](https://github.com/zupancicmarko/JellyHA/raw/main/docs/JellyHA-Library-Grid.png)
 
@@ -8,14 +8,14 @@ JellyHA integrates your Jellyfin media server directly into Home Assistant with 
 
 ---
 
-### 🆕 What's new in v1.3.0
+### 🆕 What's new in v1.3.1
 
-- **Device-Based Media Players** — dedicated `media_player` entities per physical device (Apple TV, Fire TV, Smart TVs) for room-based automations
-- **Chromecast Subtitle Selection** — full subtitle control when casting (`auto`, `none`, `forced_only`, `custom` with language priority list)
-- **Connected Clients Sensor** — `sensor.jellyha_connected_clients` for Wake-on-LAN automations triggered before playback starts
-- **Latest Movie & Episode Sensors** — rich metadata including HDR/DV, resolution, codecs, ratings
-- **Jellyfin 12.0 Ready** — full compatibility with Jellyfin 12.0+ WebSocket authentication
-- **Intro & Segment Detection** — auto-skip Intros, Outros, Recaps, and Commercials
+- **Album & Playlist Playback** — Play albums and playlists directly in Media Browser and media players (#25)
+- **Audio Streaming & Cast Proxies** — Dedicated proxy endpoints and MIME type classification for Cast audio
+- **Clean Display Stream Filenames** — Clean track, movie, and episode names in Cast stream URLs
+- **Library-Scoped Favorites** — Scoped browsing to authorized libraries configured for each instance
+- **Active Session Remote Control** — Automatically route media player play requests to active Jellyfin clients
+- **Cinematic Hero Banner Card Recipes** — Ready-to-use Lovelace Markdown cards for newly added media
 
 ---
 

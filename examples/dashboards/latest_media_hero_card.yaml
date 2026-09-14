@@ -1,0 +1,232 @@
+# ==============================================================================
+# JellyHA Dashboard Examples: Latest Media Hero Banner Cards
+# ==============================================================================
+# Cinematic hero banner cards for displaying recently added movies or TV episodes.
+# Features blurred backdrop art, scaled floating poster, format pills, and synopsis.
+#
+# Requirements:
+#   - JellyHA v1.3.0+ (provides sensor.jellyha_latest_movie and sensor.jellyha_latest_episode)
+#   - card-mod (available via HACS) for backdrop blur and glassmorphism styling
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Latest Movie Hero Banner (Cinematic Backdrop + Floating Poster)
+# ------------------------------------------------------------------------------
+type: markdown
+content: >
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; height: 100%; border-collapse: collapse; background: transparent; margin: 0; padding: 0; box-sizing: border-box;"><tr><td width="80" align="center" valign="middle" style="vertical-align: middle; width: 80px; min-width: 80px; max-width: 80px; padding: 0 14px 0 0; box-sizing: border-box;"><img src="{{ state_attr('sensor.jellyha_latest_movie', 'poster_url') }}" width="76" height="114" alt="Poster" style="width: 76px; max-width: 76px; height: 114px; max-height: 114px; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.85); border: 1.5px solid rgba(255,255,255,0.35); display: block;"></td><td valign="middle" style="vertical-align: middle; padding: 0; box-sizing: border-box; overflow-wrap: break-word;"><h1 style="margin: 0 0 4px 0; font-size: clamp(1rem, 2.5vw, 1.35rem); font-weight: 800; line-height: 1.15; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.95); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ state_attr('sensor.jellyha_latest_movie', 'title') }}</h1><div style="margin: 0 0 6px 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;"><span class="badge-primary" style="background: var(--primary-color); color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); margin-right: 6px;">{{ state_attr('sensor.jellyha_latest_movie', 'resolution') }}</span>&nbsp;<span class="badge-text" style="color: #ffffff; text-shadow: 0 1px 4px rgba(0,0,0,0.9); font-size: 0.78rem; margin-right: 6px;">{{ state_attr('sensor.jellyha_latest_movie', 'year') }} •</span>&nbsp;<span class="badge-rating" style="color: #f5a623; text-shadow: 0 1px 4px rgba(0,0,0,0.9); font-size: 0.78rem; font-weight: 700;">★ {{ state_attr('sensor.jellyha_latest_movie', 'rating') }}</span></div><p style="margin: 0; line-height: 1.35; font-size: 0.82rem; color: rgba(255,255,255,0.9); text-shadow: 0 2px 6px rgba(0,0,0,0.95); overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ state_attr('sensor.jellyha_latest_movie', 'overview') }}</p></td></tr></table>
+text_only: true
+card_mod:
+  style:
+    .: |
+      :host {
+        --shadow-bottom: rgba(0, 0, 0, 0.92);
+        --shadow-middle: rgba(0, 0, 0, 0.50);
+        --shadow-top: rgba(0, 0, 0, 0.00);
+        --backdrop-blur: 4px;
+        display: block !important;
+        height: 100% !important;
+      }
+      ha-card {
+        position: relative;
+        height: 100% !important;
+        overflow: hidden !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 16px !important;
+        padding: 10px 14px !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        --divider-color: transparent !important;
+      }
+      ha-markdown {
+        position: relative !important;
+        z-index: 2 !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        overflow: hidden !important;
+      }
+      ha-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: 
+          linear-gradient(to top, var(--shadow-bottom) 0%, var(--shadow-middle) 50%, var(--shadow-top) 100%), 
+          url('{{ state_attr("sensor.jellyha_latest_movie", "backdrop_url") or state_attr("sensor.jellyha_latest_movie", "poster_url") }}');
+        background-size: cover;
+        background-position: center;
+        filter: blur(var(--backdrop-blur));
+        transform: scale(1.05);
+        z-index: 1 !important;
+        pointer-events: none !important;
+      }
+    ha-markdown $: |
+      ha-markdown-element {
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+      }
+      table {
+        width: 100% !important;
+        height: 100% !important;
+        border-collapse: collapse !important;
+      }
+      td {
+        vertical-align: middle !important;
+      }
+      img {
+        width: 500px !important;
+        min-width: 500px !important;
+        max-width: 500px !important;
+        height: 700px !important;
+        min-height: 700px !important;
+        max-height: 700px !important;
+        object-fit: cover !important;
+        border-radius: 12px !important;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.85) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+        display: block !important;
+      }
+      .badge-primary {
+        background: var(--primary-color, #03a9f4) !important;
+        color: white !important;
+        font-size: 0.7rem !important;
+        font-weight: 700 !important;
+        padding: 2px 7px !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5) !important;
+        display: inline-block !important;
+      }
+      .badge-text {
+        color: #ffffff !important;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9) !important;
+        font-size: 0.78rem !important;
+      }
+      .badge-rating {
+        color: #f5a623 !important;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9) !important;
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
+      }
+grid_options:
+  columns: full
+  rows: 14
+
+# ------------------------------------------------------------------------------
+# 2. Latest TV Episode Hero Banner (Cinematic Backdrop + Floating Poster)
+# ------------------------------------------------------------------------------
+type: markdown
+content: >
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="width: 100%; height: 100%; border-collapse: collapse; background: transparent; margin: 0; padding: 0; box-sizing: border-box;"><tr><td width="80" align="center" valign="middle" style="vertical-align: middle; width: 80px; min-width: 80px; max-width: 80px; padding: 0 14px 0 0; box-sizing: border-box;"><img src="{{ state_attr('sensor.jellyha_latest_episode', 'series_poster_url') or state_attr('sensor.jellyha_latest_episode', 'poster_url') }}" width="76" height="114" alt="Poster" style="width: 76px; max-width: 76px; height: 114px; max-height: 114px; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.85); border: 1.5px solid rgba(255,255,255,0.35); display: block;"></td><td valign="middle" style="vertical-align: middle; padding: 0; box-sizing: border-box; overflow-wrap: break-word;"><div style="font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; text-shadow: 0 2px 6px rgba(0,0,0,0.95); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ state_attr('sensor.jellyha_latest_episode', 'series_name') }}</div><h1 style="margin: 0 0 4px 0; font-size: clamp(0.95rem, 2.5vw, 1.35rem); font-weight: 800; line-height: 1.15; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.95); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ state_attr('sensor.jellyha_latest_episode', 'title') }}</h1><div style="margin: 0 0 6px 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;"><span class="badge-primary" style="background: var(--primary-color); color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); margin-right: 6px;">S{{ '%02d' % (state_attr('sensor.jellyha_latest_episode', 'season') or 1) }}E{{ '%02d' % (state_attr('sensor.jellyha_latest_episode', 'episode') or 1) }}</span>&nbsp;<span class="badge-subtle" style="background: rgba(255,255,255,0.2); color: #ffffff; font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); margin-right: 6px;">{{ state_attr('sensor.jellyha_latest_episode', 'resolution') }}</span>&nbsp;<span class="badge-text" style="color: #ffffff; text-shadow: 0 1px 4px rgba(0,0,0,0.9); font-size: 0.78rem; margin-right: 6px;">{{ state_attr('sensor.jellyha_latest_episode', 'year') }} •</span>&nbsp;<span class="badge-rating" style="color: #f5a623; text-shadow: 0 1px 4px rgba(0,0,0,0.9); font-size: 0.78rem; font-weight: 700;">★ {{ state_attr('sensor.jellyha_latest_episode', 'rating') }}</span></div><p style="margin: 0; line-height: 1.35; font-size: 0.82rem; color: rgba(255,255,255,0.9); text-shadow: 0 2px 6px rgba(0,0,0,0.95); overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ state_attr('sensor.jellyha_latest_episode', 'overview') }}</p></td></tr></table>
+text_only: true
+card_mod:
+  style:
+    .: |
+      :host {
+        --shadow-bottom: rgba(0, 0, 0, 0.92);
+        --shadow-middle: rgba(0, 0, 0, 0.50);
+        --shadow-top: rgba(0, 0, 0, 0.00);
+        --backdrop-blur: 4px;
+        display: block !important;
+        height: 100% !important;
+      }
+      ha-card {
+        position: relative;
+        height: 100% !important;
+        overflow: hidden !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 16px !important;
+        padding: 10px 14px !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        --divider-color: transparent !important;
+      }
+      ha-markdown {
+        position: relative !important;
+        z-index: 2 !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        overflow: hidden !important;
+      }
+      ha-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: 
+          linear-gradient(to top, var(--shadow-bottom) 0%, var(--shadow-middle) 50%, var(--shadow-top) 100%), 
+          url('{{ state_attr("sensor.jellyha_latest_episode", "backdrop_url") or state_attr("sensor.jellyha_latest_episode", "series_poster_url") or state_attr("sensor.jellyha_latest_episode", "poster_url") }}');
+        background-size: cover;
+        background-position: center;
+        filter: blur(var(--backdrop-blur));
+        transform: scale(1.05);
+        z-index: 1 !important;
+        pointer-events: none !important;
+      }
+    ha-markdown $: |
+      ha-markdown-element {
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+      }
+      table {
+        width: 100% !important;
+        height: 100% !important;
+        border-collapse: collapse !important;
+      }
+      td {
+        vertical-align: middle !important;
+      }
+      img {
+        width: 500px !important;
+        min-width: 500px !important;
+        max-width: 500px !important;
+        height: 700px !important;
+        min-height: 700px !important;
+        max-height: 700px !important;
+        object-fit: cover !important;
+        border-radius: 12px !important;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.85) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+        display: block !important;
+      }
+      .badge-primary {
+        background: var(--primary-color, #03a9f4) !important;
+        color: white !important;
+        font-size: 0.7rem !important;
+        font-weight: 700 !important;
+        padding: 2px 7px !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5) !important;
+        display: inline-block !important;
+      }
+      .badge-subtle {
+        background: rgba(255, 255, 255, 0.2) !important;
+        color: #ffffff !important;
+        font-size: 0.7rem !important;
+        font-weight: 700 !important;
+        padding: 2px 6px !important;
+        border-radius: 10px !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        display: inline-block !important;
+      }
+      .badge-text {
+        color: #ffffff !important;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9) !important;
+        font-size: 0.78rem !important;
+      }
+      .badge-rating {
+        color: #f5a623 !important;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9) !important;
+        font-size: 0.78rem !important;
+        font-weight: 700 !important;
+      }
+grid_options:
+  columns: full
+  rows: 14

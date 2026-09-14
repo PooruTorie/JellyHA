@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.media_player import (
     BrowseMedia,
@@ -32,7 +32,9 @@ from .const import (
 from .coordinator import JellyHALibraryCoordinator, JellyHASessionCoordinator
 from .device import get_device_info
 from .media_strategy import MediaStrategy
-from . import JellyHAConfigEntry
+
+if TYPE_CHECKING:
+    from ..jellyha import JellyHAConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -150,9 +152,44 @@ class JellyHAMediaPlayer(CoordinatorEntity[JellyHALibraryCoordinator], MediaPlay
         # Parse the item ID
         category, item_id = parse_item_id(media_id)
 
-        if category != "item" or not item_id:
+        if not item_id:
+            # Fallback if raw item_id or URL was passed
+            raw_id = media_id
+            if "item_id=" in raw_id:
+                item_id = raw_id.split("item_id=")[-1].split("&")[0]
+            elif "/" in raw_id:
+                item_id = raw_id.rstrip("/").split("/")[-1].split("?")[0]
+            else:
+                item_id = raw_id
+
+        if not item_id:
             _LOGGER.warning("Cannot play: invalid media_id format: %s", media_id)
             return
+
+        api = self.coordinator._api
+        user_id = self._entry.data.get("user_id")
+
+        # If album or playlist, resolve first playable track
+        if category in ("album", "playlist") and api and user_id:
+            try:
+                tracks_result = await api._request(
+                    "GET",
+                    "/Items",
+                    params={
+                        "UserId": user_id,
+                        "ParentId": item_id,
+                        "IncludeItemTypes": "Audio",
+                        "SortBy": "IndexNumber",
+                        "SortOrder": "Ascending",
+                        "Limit": 1,
+                        "Recursive": "true",
+                    },
+                )
+                items = tracks_result.get("Items", [])
+                if items:
+                    item_id = items[0]["Id"]
+            except Exception as err:
+                _LOGGER.debug("Could not resolve tracks for %s %s: %s", category, item_id, err)
 
         # Find the item in coordinator data
         items = self.coordinator.data.get("items", []) if self.coordinator.data else []
@@ -163,8 +200,6 @@ class JellyHAMediaPlayer(CoordinatorEntity[JellyHALibraryCoordinator], MediaPlay
             # fall back to a direct API call
             _LOGGER.debug("Item %s not in cache, fetching from API", item_id)
             try:
-                api = self.coordinator._api
-                user_id = self._entry.data.get("user_id")
                 if api and user_id:
                     raw = await api.get_item(user_id, item_id)
                     item = await self.coordinator._async_transform_item(raw)
@@ -178,13 +213,37 @@ class JellyHAMediaPlayer(CoordinatorEntity[JellyHALibraryCoordinator], MediaPlay
 
         self._current_item = item
 
-        # Call the play_on_chromecast service if a default device is configured
-        # For now, just log the play request - user can configure card action
-        _LOGGER.info(
-            "Play request for '%s' (ID: %s). Use card or call jellyha.play_on_chromecast service.",
-            item.get("name"),
-            item_id,
-        )
+        # Route playback to active Jellyfin player session(s)
+        session_coordinator = getattr(self.coordinator.entry.runtime_data, "session", None)
+        active_sessions = session_coordinator.data if session_coordinator and session_coordinator.data else []
+        target_sessions = [
+            s for s in active_sessions
+            if s.get("UserId") == user_id and s.get("Client") not in ("home-assistant", "Seerr")
+        ]
+        if not target_sessions:
+            target_sessions = [
+                s for s in active_sessions
+                if s.get("Client") not in ("home-assistant", "Seerr")
+            ]
+
+        if target_sessions and api:
+            for s in target_sessions:
+                sid = s.get("Id")
+                if sid:
+                    _LOGGER.info(
+                        "Routing play request for '%s' (ID: %s) to active Jellyfin session %s (%s)",
+                        item.get("name"),
+                        item_id,
+                        sid,
+                        s.get("DeviceName"),
+                    )
+                    await api.session_play(sid, item_id)
+        else:
+            _LOGGER.info(
+                "Play request for '%s' (ID: %s). No active Jellyfin sessions found to remote-control.",
+                item.get("name"),
+                item_id,
+            )
 
     async def async_search_media(
         self,

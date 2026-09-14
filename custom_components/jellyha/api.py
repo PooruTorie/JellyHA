@@ -446,6 +446,31 @@ class JellyfinApiClient:
             _LOGGER.debug("Could not fetch favorite series IDs: %s", err)
             return set()
 
+    async def get_favorite_items(
+        self,
+        user_id: str,
+        parent_id: str | None = None,
+        limit: int = 100,
+    ) -> list[dict[str, Any]]:
+        """Get favorite items for a user, optionally scoped to a library parent_id."""
+        try:
+            params = {
+                "UserId": user_id,
+                "Filters": "IsFavorite",
+                "Recursive": "true",
+                "SortBy": "SortName",
+                "SortOrder": "Ascending",
+                "Fields": "PrimaryImageTag,MediaStreams,Container,Overview,Artists,AlbumArtist,SeriesName,SeasonName,ParentIndexNumber,IndexNumber,RunTimeTicks,ProductionYear,UserData",
+                "Limit": limit,
+            }
+            if parent_id:
+                params["ParentId"] = parent_id
+            res = await self._request("GET", f"/Users/{user_id}/Items", params=params)
+            return res.get("Items", []) if isinstance(res, dict) else []
+        except Exception as err:
+            _LOGGER.error("Failed to fetch favorite items for user %s: %s", user_id, err)
+            return []
+
     async def get_similar_items(self, user_id: str, item_id: str, limit: int = 5) -> list[dict[str, Any]]:
         """Get similar items (recommendations) for a specific item."""
         # Reduced fields for optimization
@@ -510,12 +535,22 @@ class JellyfinApiClient:
         prefix = "Audio" if item_type == "Audio" else "Videos"
         return f"{self._server_url}/{prefix}/{item_id}/stream?static=true&api_key={self._api_key}&ApiKey={self._api_key}"
 
-    def get_stream_path(self, entry_id: str, item_id: str, item_type: str = "Video") -> str:
+    def get_stream_path(
+        self,
+        entry_id: str,
+        item_id: str,
+        item_type: str = "Video",
+        filename: str | None = None,
+    ) -> str:
         """Get the internal HA proxy path for streaming (no API key exposed).
 
         This path is meant to be signed via async_sign_path() before use.
         """
         prefix = "Audio" if item_type == "Audio" else "Videos"
+        if filename:
+            import urllib.parse
+            safe_filename = urllib.parse.quote(filename)
+            return f"/api/jellyha/stream/{entry_id}/{prefix}/{item_id}/{safe_filename}"
         return f"/api/jellyha/stream/{entry_id}/{item_id}?media_type={prefix}"
 
     async def update_favorite(self, user_id: str, item_id: str, is_favorite: bool) -> bool:
@@ -661,7 +696,7 @@ class JellyfinApiClient:
         """Fetch latest added items for a user."""
         params: dict[str, Any] = {
             "Limit": str(limit),
-            "Fields": "Overview,Genres,OfficialRating,CommunityRating,CriticRating,DateCreated,MediaSources,MediaStreams,PremiereDate,RemoteTrailers,SeriesPrimaryImageTag,ProductionYear,RunTimeTicks,Container",
+            "Fields": "Overview,Genres,OfficialRating,CommunityRating,CriticRating,DateCreated,MediaSources,MediaStreams,PremiereDate,RemoteTrailers,SeriesPrimaryImageTag,ProductionYear,RunTimeTicks,Container,Artists,AlbumArtist,SeriesName,SeasonName,ParentIndexNumber,IndexNumber",
             "GroupItems": "false",
         }
         if item_types:

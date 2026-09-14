@@ -5362,7 +5362,7 @@ var At = Object.defineProperty, Et = Object.getOwnPropertyDescriptor, w = (e, t,
     (r = e[s]) && (o = (a ? r(t, i, o) : r(o)) || o);
   return a && o && At(t, i, o), o;
 };
-const Tt = "1.3.0";
+const Tt = "1.3.1";
 console.info(
   `%c JELLYHA-LIBRARY-CARD %c v${Tt} `,
   "color: white; background: #00a4dc; font-weight: bold;",
