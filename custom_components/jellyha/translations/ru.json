@@ -209,14 +209,14 @@
             "storage_free_percent": {
                 "name": "Процент свободного медиа-хранилища"
             },
-            "movies_percentage": {
-                "name": "Процент просмотренных фильмов"
+            "library_movies_watched_percentage": {
+                "name": "Процент просмотренных фильмов в медиатеке"
             },
-            "series_percentage": {
-                "name": "Процент просмотренных сериалов"
+            "library_series_watched_percentage": {
+                "name": "Процент просмотренных сериалов в медиатеке"
             },
-            "episodes_percentage": {
-                "name": "Процент просмотренных эпизодов"
+            "library_episodes_watched_percentage": {
+                "name": "Процент просмотренных серий в медиатеке"
             }
         },
         "media_player": {

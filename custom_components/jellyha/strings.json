@@ -213,14 +213,14 @@
             "storage_free_percent": {
                 "name": "Media Storage Free Percentage"
             },
-            "movies_percentage": {
-                "name": "Movies Watched Percentage"
+            "library_movies_watched_percentage": {
+                "name": "Library Movies Watched Percentage"
             },
-            "series_percentage": {
-                "name": "Series Watched Percentage"
+            "library_series_watched_percentage": {
+                "name": "Library Series Watched Percentage"
             },
-            "episodes_percentage": {
-                "name": "Episodes Watched Percentage"
+            "library_episodes_watched_percentage": {
+                "name": "Library Episodes Watched Percentage"
             }
         },
         "media_player": {

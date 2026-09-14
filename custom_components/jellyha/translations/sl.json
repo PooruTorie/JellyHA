@@ -194,14 +194,14 @@
             "storage_free_percent": {
                 "name": "Odstotek prostega prostora"
             },
-            "movies_percentage": {
-                "name": "Odstotek ogledanih filmov"
+            "library_movies_watched_percentage": {
+                "name": "Odstotek ogledanih filmov v knjižnici"
             },
-            "series_percentage": {
-                "name": "Odstotek ogledanih serij"
+            "library_series_watched_percentage": {
+                "name": "Odstotek ogledanih serij v knjižnici"
             },
-            "episodes_percentage": {
-                "name": "Odstotek ogledanih epizod"
+            "library_episodes_watched_percentage": {
+                "name": "Odstotek ogledanih epizod v knjižnici"
             }
         },
         "media_player": {

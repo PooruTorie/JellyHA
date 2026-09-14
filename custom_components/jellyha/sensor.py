@@ -1563,7 +1563,7 @@ class JellyHAMediaStorageFreePercentSensor(JellyHABaseSensor):
 class JellyHAMoviesPercentageSensor(JellyHABaseSensor):
     """Sensor for watched movies percentage."""
 
-    _attr_translation_key = "movies_percentage"
+    _attr_translation_key = "library_movies_watched_percentage"
     _attr_icon = "mdi:percent"
     _attr_native_unit_of_measurement = "%"
     _attr_suggested_display_precision = 1
@@ -1576,7 +1576,7 @@ class JellyHAMoviesPercentageSensor(JellyHABaseSensor):
         device_name: str,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, entry, device_name, "movies_percentage")
+        super().__init__(coordinator, entry, device_name, "library_movies_watched_percentage")
 
     @property
     def native_value(self) -> float | None:
@@ -1620,7 +1620,7 @@ class JellyHAMoviesPercentageSensor(JellyHABaseSensor):
 class JellyHASeriesPercentageSensor(JellyHABaseSensor):
     """Sensor for watched series percentage."""
 
-    _attr_translation_key = "series_percentage"
+    _attr_translation_key = "library_series_watched_percentage"
     _attr_icon = "mdi:percent"
     _attr_native_unit_of_measurement = "%"
     _attr_suggested_display_precision = 1
@@ -1633,7 +1633,7 @@ class JellyHASeriesPercentageSensor(JellyHABaseSensor):
         device_name: str,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, entry, device_name, "series_percentage")
+        super().__init__(coordinator, entry, device_name, "library_series_watched_percentage")
 
     @property
     def native_value(self) -> float | None:
@@ -1677,7 +1677,7 @@ class JellyHASeriesPercentageSensor(JellyHABaseSensor):
 class JellyHAEpisodesPercentageSensor(JellyHABaseSensor):
     """Sensor for watched episodes percentage."""
 
-    _attr_translation_key = "episodes_percentage"
+    _attr_translation_key = "library_episodes_watched_percentage"
     _attr_icon = "mdi:percent"
     _attr_native_unit_of_measurement = "%"
     _attr_suggested_display_precision = 1
@@ -1690,7 +1690,7 @@ class JellyHAEpisodesPercentageSensor(JellyHABaseSensor):
         device_name: str,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, entry, device_name, "episodes_percentage")
+        super().__init__(coordinator, entry, device_name, "library_episodes_watched_percentage")
 
     @property
     def native_value(self) -> float | None:

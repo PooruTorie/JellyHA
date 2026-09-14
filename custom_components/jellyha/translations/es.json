@@ -209,14 +209,14 @@
             "storage_free_percent": {
                 "name": "Porcentaje de almacenamiento libre"
             },
-            "movies_percentage": {
-                "name": "Porcentaje de películas vistas"
+            "library_movies_watched_percentage": {
+                "name": "Porcentaje de películas vistas de la biblioteca"
             },
-            "series_percentage": {
-                "name": "Porcentaje de series vistas"
+            "library_series_watched_percentage": {
+                "name": "Porcentaje de series vistas de la biblioteca"
             },
-            "episodes_percentage": {
-                "name": "Porcentaje de episodios vistos"
+            "library_episodes_watched_percentage": {
+                "name": "Porcentaje de episodios vistos de la biblioteca"
             }
         },
         "media_player": {
