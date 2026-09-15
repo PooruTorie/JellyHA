@@ -97,6 +97,59 @@ def _get_coordinator(
     # Default to first available entry
     return jellyha_entries[0].runtime_data.library
 
+
+def _clean_transformed_item(item: dict[str, Any]) -> dict[str, Any]:
+    """Strip irrelevant null attributes depending on media type to return clean service responses."""
+    if not isinstance(item, dict):
+        return item
+
+    item_type = item.get("type")
+    cleaned = dict(item)
+
+    video_series_keys = {
+        "series_name", "series_id", "season", "episode", "season_name",
+        "series_poster_url", "total_episodes", "unplayed_count",
+        "dynamic_range", "video_range", "video_range_type", "video_codec",
+        "video_bit_depth", "dv_profile", "width", "height", "resolution",
+        "aspect_ratio", "trailer_url", "media_streams",
+    }
+    music_keys = {
+        "artist_name", "album_artist", "album", "album_id",
+        "track_number", "disc_number", "stream_url", "audio_container",
+        "audio_quality_label",
+    }
+    tv_series_keys = {
+        "series_name", "series_id", "season", "episode", "season_name",
+        "series_poster_url", "total_episodes", "unplayed_count",
+    }
+
+    if item_type in ("Audio", "MusicAlbum", "MusicArtist"):
+        for k in video_series_keys:
+            cleaned.pop(k, None)
+    elif item_type == "Movie":
+        for k in music_keys:
+            cleaned.pop(k, None)
+        for k in tv_series_keys:
+            cleaned.pop(k, None)
+    elif item_type == "Series":
+        for k in music_keys:
+            cleaned.pop(k, None)
+        for k in (
+            "season", "episode", "season_name", "series_name", "series_id",
+            "series_poster_url", "dynamic_range", "video_range", "video_range_type",
+            "video_codec", "video_bit_depth", "dv_profile", "width", "height",
+            "resolution", "aspect_ratio", "trailer_url", "media_streams",
+            "audio_codec", "audio_channels", "audio_bit_rate", "audio_sample_rate",
+            "audio_bit_depth", "audio_channel_layout", "is_lossless", "is_hi_res",
+        ):
+            cleaned.pop(k, None)
+    elif item_type == "Episode":
+        for k in music_keys:
+            cleaned.pop(k, None)
+
+    return cleaned
+
+
 # Schemas
 PLAY_ON_CHROMECAST_SCHEMA = vol.Schema(
     {
@@ -549,7 +602,7 @@ async def async_register_services(hass: HomeAssistant) -> None:
             )
 
         results = list(await asyncio.gather(*(coordinator._async_transform_item(item) for item in items)))
-        return {"items": results}
+        return {"items": [_clean_transformed_item(item) for item in results]}
 
     async def async_music_search(call: ServiceCall) -> ServiceResponse:
         """Search music library and return items with rich audio metadata."""
@@ -575,7 +628,7 @@ async def async_register_services(hass: HomeAssistant) -> None:
 
         # When filtering by codec/hi-res/lossless in-memory, fetch a larger batch
         needs_post_filter = bool(codec_filter or is_hi_res is not None or is_lossless is not None)
-        fetch_limit = min(limit * 3, 100) if needs_post_filter else limit
+        fetch_limit = min(max(limit * 5, 50), 200) if needs_post_filter else limit
 
         configured_libs = coordinator.entry.data.get("libraries", [])
 
@@ -601,13 +654,6 @@ async def async_register_services(hass: HomeAssistant) -> None:
 
         # Apply post-filters if specified
         results = []
-        video_only_keys = {
-            "series_name", "series_id", "season", "episode", "season_name",
-            "series_poster_url", "total_episodes", "unplayed_count",
-            "dynamic_range", "video_range", "video_range_type", "video_codec",
-            "video_bit_depth", "dv_profile", "width", "height", "resolution",
-            "aspect_ratio", "trailer_url", "media_streams",
-        }
         for item in transformed:
             if codec_filter and (item.get("audio_codec") or "").lower() != codec_filter:
                 continue
@@ -615,10 +661,7 @@ async def async_register_services(hass: HomeAssistant) -> None:
                 continue
             if is_lossless is not None and item.get("is_lossless") != is_lossless:
                 continue
-            # Strip video-specific null attributes for audio items
-            if item.get("type") in ("Audio", "MusicAlbum", "MusicArtist"):
-                item = {k: v for k, v in item.items() if k not in video_only_keys}
-            results.append(item)
+            results.append(_clean_transformed_item(item))
             if len(results) >= limit:
                 break
 
@@ -701,8 +744,12 @@ async def async_register_services(hass: HomeAssistant) -> None:
                     item = await coordinator._async_transform_item(first_tracks[0])
                     item_id = item["id"]
                     container = (item.get("audio_container") or item.get("container") or "mp3").lower()
+                else:
+                    raise ValueError(f"Album '{item.get('name')}' has no playable tracks")
             except Exception as err:
                 _LOGGER.debug("Could not resolve first track for album %s: %s", item_id, err)
+                if isinstance(err, ValueError):
+                    raise
 
         # Determine exact MIME type
         if container == "flac":
@@ -721,15 +768,32 @@ async def async_register_services(hass: HomeAssistant) -> None:
         if not media_url:
             media_url = f"{api._server_url}/Audio/{item_id}/stream?static=true&api_key={api._api_key}&ApiKey={api._api_key}"
 
-        # Image for media player display
-        image_url = item.get("image_url") or item.get("poster_url")
+        # Cover art: provide direct absolute server URL so external speakers (Chromecast, Sonos) can load it
+        thumb_url = api.get_image_url(item_id, "Primary")
+        album_id = item.get("album_id")
+        if not thumb_url and album_id:
+            thumb_url = api.get_image_url(album_id, "Primary")
+
+        title = item.get("name")
+        artist = item.get("artist_name") or item.get("album_artist")
+        album = item.get("album")
+
+        metadata = {
+            "metadataType": 3,
+            "title": title,
+            "artist": artist,
+            "albumTitle": album,
+        }
+        if thumb_url:
+            metadata["images"] = [{"url": thumb_url}]
 
         extra_payload = {
-            "title": item.get("name"),
-            "artist": item.get("artist_name") or item.get("album_artist"),
-            "album_name": item.get("album"),
-            "thumb": image_url,
+            "title": title,
+            "artist": artist,
+            "album_name": album,
+            "thumb": thumb_url,
             "autoplay": True,
+            "metadata": metadata,
         }
 
         # Stop previous playback if currently active to reset buffers
@@ -860,7 +924,12 @@ async def async_register_services(hass: HomeAssistant) -> None:
                     if dev_id and s.get("DeviceId") == dev_id:
                         target_session_id = s.get("Id")
                         break
-                    if dev_name and s.get("DeviceName", "").strip().lower() == dev_name.strip().lower():
+                    s_names = {
+                        str(s.get("DeviceName") or "").strip().lower(),
+                        str(s.get("CustomName") or "").strip().lower(),
+                        str(s.get("DeviceCustomName") or "").strip().lower(),
+                    }
+                    if dev_name and dev_name.strip().lower() in s_names:
                         target_session_id = s.get("Id")
                         break
                     if client and s.get("Client", "").strip().lower() == client.strip().lower():
@@ -874,7 +943,12 @@ async def async_register_services(hass: HomeAssistant) -> None:
                     if dev_id and s.get("DeviceId") == dev_id:
                         target_session_id = s.get("Id")
                         break
-                    if dev_name and s.get("DeviceName", "").strip().lower() == dev_name.strip().lower():
+                    s_names = {
+                        str(s.get("DeviceName") or "").strip().lower(),
+                        str(s.get("CustomName") or "").strip().lower(),
+                        str(s.get("DeviceCustomName") or "").strip().lower(),
+                    }
+                    if dev_name and dev_name.strip().lower() in s_names:
                         target_session_id = s.get("Id")
                         break
                     if client and s.get("Client", "").strip().lower() == client.strip().lower():
@@ -922,7 +996,7 @@ async def async_register_services(hass: HomeAssistant) -> None:
             user_id = coordinator.entry.data.get("user_id")
             items = await coordinator._api.get_similar_items(user_id=user_id, item_id=call.data["item_id"], limit=call.data["limit"])
             results = list(await asyncio.gather(*(coordinator._async_transform_item(item) for item in items)))
-            return {"items": results}
+            return {"items": [_clean_transformed_item(r) for r in results]}
         except Exception as e:
             raise ValueError(f"Recommendations failed: {e}") from e
 
@@ -937,7 +1011,7 @@ async def async_register_services(hass: HomeAssistant) -> None:
                 return {"item": None}
 
             transformed_item = await coordinator._async_transform_item(raw_item)
-            return {"item": transformed_item}
+            return {"item": _clean_transformed_item(transformed_item) if transformed_item else None}
         except Exception as e:
             raise ValueError(f"Get Item failed: {e}") from e
 
@@ -1030,7 +1104,12 @@ async def async_register_services(hass: HomeAssistant) -> None:
             for session in sessions:
                 if device_id and session.get("DeviceId") == device_id:
                     return session.get("Id")
-                if device_name and session.get("DeviceName", "").strip().lower() == device_name.strip().lower():
+                s_names = {
+                    str(session.get("DeviceName") or "").strip().lower(),
+                    str(session.get("CustomName") or "").strip().lower(),
+                    str(session.get("DeviceCustomName") or "").strip().lower(),
+                }
+                if device_name and device_name.strip().lower() in s_names:
                     return session.get("Id")
                 if client and session.get("Client", "").strip().lower() == client.strip().lower():
                     return session.get("Id")
