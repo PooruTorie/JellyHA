@@ -142,6 +142,14 @@ data:
 | `sensor.jellyha_library_series_watched_percentage` | Percentage of watched series | Percentage (e.g. `42.5` %) | `watched`, `total`, `unwatched`, `entry_id` |
 | `sensor.jellyha_library_episodes_watched_percentage` | Percentage of watched episodes | Percentage (e.g. `68.2` %) | `watched`, `total`, `unwatched`, `entry_id` |
 
+### Live TV Sensor
+
+| Entity ID | Description | State | Key Attributes |
+|---|---|---|---|
+| `sensor.jellyha_live_tv_channels` | Available Jellyfin Live TV channels count | Channel count (integer) | `entry_id`, `server_name`, `total_channels` |
+
+> Note: To enable this sensor, turn on **Enable Live TV** in the integration's Options Flow. The sensor reports the total channel count and updates with the normal coordinator refresh cycle. To retrieve full channel details or build custom cards, use the `jellyha.get_live_tv_channels` action or browse channels visually via Home Assistant's native Media Browser.
+
 ### Latest Content Sensors
 
 | Entity ID | Description | State | Key Attributes |

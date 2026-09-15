@@ -5,6 +5,16 @@ All notable changes to JellyHA will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Live TV Support (PR #38, Fixes [#11](https://github.com/zupancicmarko/JellyHA/issues/11))**:
+  - Added visual Live TV channel browsing with 1-tap playback in the Media Browser under a dedicated **📡 Live TV** category with authenticated channel logos and channel numbers.
+  - Added `enable_live_tv` toggle in Integration Options Flow (defaults to `false`) to eliminate unnecessary API polling for setups without TV tuners or IPTV.
+  - Added lightweight `sensor.jellyha_live_tv_channels` reporting total channel count with recorder database protection against SQLite attribute size limits.
+  - Added dedicated Live TV services: `jellyha.play_live_tv_channel` (direct tuning by channel number or name in a single step, compatible with Home Assistant Voice Assist) and `jellyha.get_live_tv_channels` (searchable channel list with query and limit parameters, plus coordinator RAM fallback).
+  - Full multi-instance support and localization across 7 languages (`en`, `sl`, `de`, `fr`, `es`, `it`, `ru`).
+
 ## [1.3.1] - 2026-09-14
 
 ### Added

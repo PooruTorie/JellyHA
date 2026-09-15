@@ -82,7 +82,11 @@
                     "server_url": "URL strežnika",
                     "external_url": "Zunanji URL (Neobvezno, za UI povezave)",
                     "refresh_interval": "Interval osveževanja knjižnice",
-                    "update_credentials": "Posodobi poverilnice / Zamenjaj uporabnika"
+                    "update_credentials": "Posodobi poverilnice / Zamenjaj uporabnika",
+                    "enable_live_tv": "Omogoči TV v živo"
+                },
+                "data_description": {
+                    "enable_live_tv": "Omogoči kanale TV v živo, namenske storitve in brskalnik predstavnosti."
                 }
             },
             "auth_method": {
@@ -202,6 +206,9 @@
             },
             "library_episodes_watched_percentage": {
                 "name": "Odstotek ogledanih epizod v knjižnici"
+            },
+            "live_tv_channels": {
+                "name": "Kanali TV v živo"
             }
         },
         "media_player": {
@@ -358,6 +365,34 @@
                 "item_id": {
                     "name": "ID elementa",
                     "description": "Jellyfin ID elementa."
+                }
+            }
+        },
+        "get_live_tv_channels": {
+            "name": "Pridobi kanale TV v živo",
+            "description": "Pridobi razpoložljive kanale TV v živo z izbirnim iskalnim filtrom.",
+            "fields": {
+                "query": {
+                    "name": "Iskalni niz",
+                    "description": "Filtriraj kanale po imenu ali številki (izbirno)."
+                },
+                "limit": {
+                    "name": "Omejitev",
+                    "description": "Največje število vrnjenih kanalov (izbirno)."
+                }
+            }
+        },
+        "play_live_tv_channel": {
+            "name": "Predvajaj kanal TV v živo",
+            "description": "Poišči kanal TV v živo po številki ali imenu in ga predvajaj.",
+            "fields": {
+                "channel_number": {
+                    "name": "Številka kanala",
+                    "description": "Točna številka kanala v Jellyfinu."
+                },
+                "channel_name": {
+                    "name": "Ime kanala",
+                    "description": "Ime kanala v Jellyfinu."
                 }
             }
         }

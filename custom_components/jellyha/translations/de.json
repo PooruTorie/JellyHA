@@ -83,7 +83,11 @@
                     "external_url": "Externe URL (Optional, für UI-Links)",
                     "refresh_interval": "Aktualisierungsintervall der Bibliothek",
                     "update_credentials": "Anmeldedaten aktualisieren / Benutzer wechseln",
-                    "libraries": "Bibliotheken"
+                    "libraries": "Bibliotheken",
+                    "enable_live_tv": "Live-TV aktivieren"
+                },
+                "data_description": {
+                    "enable_live_tv": "Live-TV-Kanäle, dedizierte Dienste und Medien-Browser aktivieren."
                 }
             },
             "auth_method": {
@@ -217,6 +221,9 @@
             },
             "library_episodes_watched_percentage": {
                 "name": "Gesehene Episoden in der Bibliothek in Prozent"
+            },
+            "live_tv_channels": {
+                "name": "Live-TV-Kanäle"
             }
         },
         "media_player": {
@@ -373,6 +380,34 @@
                 "item_id": {
                     "name": "Element-ID",
                     "description": "Die Jellyfin Element-ID."
+                }
+            }
+        },
+        "get_live_tv_channels": {
+            "name": "Live-TV-Kanäle abrufen",
+            "description": "Verfügbare Jellyfin Live-TV-Kanäle mit optionaler Suchfilterung abrufen.",
+            "fields": {
+                "query": {
+                    "name": "Suchanfrage",
+                    "description": "Kanäle nach Name oder Nummer filtern (optional)."
+                },
+                "limit": {
+                    "name": "Begrenzung",
+                    "description": "Maximale Anzahl zurückgegebener Kanäle (optional)."
+                }
+            }
+        },
+        "play_live_tv_channel": {
+            "name": "Live-TV-Kanal abspielen",
+            "description": "Einen Live-TV-Kanal nach Nummer oder Name auflösen und abspielen.",
+            "fields": {
+                "channel_number": {
+                    "name": "Kanalnummer",
+                    "description": "Exakte Jellyfin-Kanalnummer."
+                },
+                "channel_name": {
+                    "name": "Kanalname",
+                    "description": "Jellyfin-Kanalname."
                 }
             }
         }

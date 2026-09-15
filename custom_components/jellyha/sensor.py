@@ -21,6 +21,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     CONF_DEVICE_NAME,
+    CONF_ENABLE_LIVE_TV,
     DEFAULT_DEVICE_NAME,
     DOMAIN,
 )
@@ -76,6 +77,10 @@ async def async_setup_entry(
         JellyHAMediaStorageFreeSensor(coordinator, entry, device_name),
         JellyHAMediaStorageFreePercentSensor(coordinator, entry, device_name),
     ]
+
+    # Create Live TV sensor if enabled
+    if entry.options.get(CONF_ENABLE_LIVE_TV, entry.data.get(CONF_ENABLE_LIVE_TV, False)):
+        sensors.append(JellyHALiveTVChannelsSensor(coordinator, entry, device_name))
 
     # Create sensors for each user
     if session_coordinator.users:
@@ -204,6 +209,41 @@ class JellyHALibrarySensor(JellyHABaseSensor):
             "config_external_url": self._entry.options.get(
                 "external_url", self._entry.data.get("external_url", "")
             ),
+        }
+
+
+class JellyHALiveTVChannelsSensor(JellyHABaseSensor):
+    """Sensor exposing Jellyfin Live TV channels count."""
+
+    _attr_translation_key = "live_tv_channels"
+    _attr_icon = "mdi:television-classic"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(
+        self,
+        coordinator: JellyHALibraryCoordinator,
+        entry: ConfigEntry,
+        device_name: str,
+    ) -> None:
+        """Initialize the Live TV channel sensor."""
+        super().__init__(coordinator, entry, device_name, "live_tv_channels")
+
+    @property
+    def native_value(self) -> int:
+        """Return the number of available Live TV channels."""
+        if not self.coordinator.data:
+            return 0
+        return len(self.coordinator.data.get("live_tv_channels", []))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return lightweight channel count and server metadata."""
+        channels = self.coordinator.data.get("live_tv_channels", []) if self.coordinator.data else []
+        return {
+            "entry_id": self._entry.entry_id,
+            "config_entry_id": self._entry.entry_id,
+            "server_name": self.coordinator.data.get("server_name") if self.coordinator.data else None,
+            "total_channels": len(channels),
         }
 
 
@@ -1869,4 +1909,3 @@ class JellyHALibraryStorageSensor(JellyHABaseSensor):
             "percentage_used": percentage_used,
             "folders": folder_details,
         }
-

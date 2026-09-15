@@ -24,6 +24,7 @@ from .const import (
     CONF_DEVICE_NAME,
     CONF_DEVICE_NAMES,
     CONF_DEVICE_PLAYERS,
+    CONF_ENABLE_LIVE_TV,
     CONF_LIBRARIES,
     CONF_PASSWORD,
     CONF_REFRESH_INTERVAL,
@@ -33,6 +34,7 @@ from .const import (
     CONF_USER_ID,
     CONF_USERNAME,
     DEFAULT_DEVICE_NAME,
+    DEFAULT_ENABLE_LIVE_TV,
     DEFAULT_REFRESH_INTERVAL,
     DOMAIN,
     REFRESH_INTERVAL_OPTIONS,
@@ -535,6 +537,9 @@ class JellyHAOptionsFlowHandler(config_entries.OptionsFlow):
                 if CONF_LIBRARIES in user_input:
                     new_data[CONF_LIBRARIES] = user_input[CONF_LIBRARIES]
 
+                if CONF_ENABLE_LIVE_TV in user_input:
+                    new_options[CONF_ENABLE_LIVE_TV] = user_input[CONF_ENABLE_LIVE_TV]
+
                 if CONF_DEVICE_PLAYERS in user_input:
                     selected_devs = user_input[CONF_DEVICE_PLAYERS]
                     new_options[CONF_DEVICE_PLAYERS] = selected_devs
@@ -610,6 +615,10 @@ class JellyHAOptionsFlowHandler(config_entries.OptionsFlow):
                             mode=selector.SelectSelectorMode.DROPDOWN,
                         )
                     ),
+                    vol.Optional(
+                        CONF_ENABLE_LIVE_TV,
+                        default=self._config_entry.options.get(CONF_ENABLE_LIVE_TV, DEFAULT_ENABLE_LIVE_TV),
+                    ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_DEVICE_PLAYERS,
                         default=self._config_entry.options.get(CONF_DEVICE_PLAYERS, []),

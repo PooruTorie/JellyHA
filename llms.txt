@@ -88,9 +88,18 @@ Users can opt-in to dedicated media player entities per physical client device (
 * `sensor.jellyha_watched_episodes`: Total watched episodes count across all TV shows
 * `sensor.jellyha_unwatched_episodes`: Total unwatched episodes count across all TV shows
 * `sensor.jellyha_favorites`: Count of user favorite items
+* `sensor.jellyha_live_tv_channels`: Total count of available Live TV channels (attributes: `server_id`, `server_name`, `server_version`, `enabled`, state_class: `measurement`). Only created when `enable_live_tv` is enabled in Options.
+* `sensor.jellyha_library_<name>_storage_size`: Disk usage of a specific media library in GB (attributes: `bytes`, `human_readable`, `library_name`, `entry_id`, state_class: `measurement`, device_class: `data_size`)
+* `sensor.jellyha_library_<media>_watched_percentage`: Percentage of library content watched (0-100%, attributes: `library_type`, `total_items`, `watched_items`, `entry_id`, state_class: `measurement`)
 * `sensor.jellyha_last_refresh`: Timestamp of last API refresh
 * `sensor.jellyha_last_library_update`: Timestamp of last detected library update
 * `sensor.jellyha_refresh_duration`: Duration of last refresh (e.g. `0.9s`)
+
+### Native Media Browser Support (`/media-browser`)
+JellyHA registers a native Home Assistant Media Browser provider for each server instance. When browsing `media_player` entities or the sidebar Media Browser:
+* Displays top-level library folders (Movies, TV Shows, Music, etc.) and a dedicated **📡 Live TV** category (when `enable_live_tv` is enabled in Options).
+* Inside **📡 Live TV**, channels are rendered with authenticated signed channel logos, channel numbers, and titles, sorted numerically/alphabetically.
+* Tapping any channel starts instant playback directly on the selected media player.
 
 ---
 
@@ -204,6 +213,27 @@ Sends arbitrary general commands to a Jellyfin playback session (e.g. subtitle s
 * `jellyha.delete_item`: `item_id` (Required, string) — deletes item from library/disk.
 * `jellyha.get_item`: `item_id` (Required, string) — returns full item metadata into `response_variable`.
 * `jellyha.get_recommendations`: `item_id` (Required, string), `limit` (Optional, integer) — returns similar items into `response_variable`.
+
+### 9. `jellyha.play_live_tv_channel`
+Resolves a Live TV channel by exact channel number or normalized channel name, then tunes the target Jellyfin playback session or media player entity to it.
+* **Fields**:
+  * `channel_number` (Optional, string): Exact channel number (e.g. `"3"`). One of `channel_number` or `channel_name` is required.
+  * `channel_name` (Optional, string): Display name or normalized name (e.g. `"Comedy Central"` or `"comedycentral"`). One of `channel_number` or `channel_name` is required.
+  * `entity_id` / `session_id` / `device_name` / `device_id` / `client` (Optional, string): Target playback entity, active session, or client device.
+  * `server_entity_id` / `config_entry_id` (Optional, string): Target JellyHA instance.
+
+### 10. `jellyha.get_live_tv_channels`
+Retrieves available Live TV channels from Jellyfin into an automation `response_variable`, with optional text query filtering and pagination limit.
+* **Fields**:
+  * `query` (Optional, string): Filter channels by name or channel number.
+  * `limit` (Optional, integer): Maximum number of channels to return.
+  * `server_entity_id` / `config_entry_id` / `entity_id` (Optional, string): Target JellyHA instance.
+* **Return Structure**:
+  Returns a dictionary `{"channels": [...]}` where each item contains:
+  * `id`: Jellyfin channel item GUID
+  * `name`: Channel display name (e.g. `"HBO HD"`)
+  * `number`: Channel number string (e.g. `"104"`)
+  * `normalized_name`: Normalized alphanumeric lowercase string (e.g. `"hbohd"`)
 
 ---
 
@@ -529,6 +559,26 @@ action:
             data:
               brightness_pct: 30
               color_temp_kelvin: 6500
+
+### Example G: Home Assistant Voice / Assist Live TV Channel Tuning
+Directly tunes live TV channels using Voice Assist conversation trigger:
+```yaml
+alias: "Voice: Tune Live TV Channel"
+description: "Tunes TV to requested channel name or number via voice commands"
+mode: single
+trigger:
+  - trigger: conversation
+    command:
+      - "Tune to {channel}"
+      - "Watch {channel}"
+      - "Switch to channel {channel}"
+      - "Put on {channel}"
+action:
+  - action: jellyha.play_live_tv_channel
+    data:
+      channel_name: "{{ trigger.slots.channel }}"
+      entity_id: media_player.jellyha_living_room_tv
+  - set_conversation_response: "Tuning to {{ trigger.slots.channel }}."
 ```
 
 ---

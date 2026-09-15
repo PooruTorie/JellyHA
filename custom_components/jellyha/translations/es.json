@@ -83,7 +83,11 @@
                     "external_url": "URL externa (Opcional, para enlaces de UI)",
                     "refresh_interval": "Intervalo de actualización de la biblioteca",
                     "update_credentials": "Actualizar credenciales / Cambiar usuario",
-                    "libraries": "Bibliotecas"
+                    "libraries": "Bibliotecas",
+                    "enable_live_tv": "Habilitar TV en vivo"
+                },
+                "data_description": {
+                    "enable_live_tv": "Habilitar canales de TV en vivo, servicios dedicados y explorador de medios."
                 }
             },
             "auth_method": {
@@ -217,6 +221,9 @@
             },
             "library_episodes_watched_percentage": {
                 "name": "Porcentaje de episodios vistos de la biblioteca"
+            },
+            "live_tv_channels": {
+                "name": "Canales de TV en vivo"
             }
         },
         "media_player": {
@@ -373,6 +380,34 @@
                 "item_id": {
                     "name": "ID del elemento",
                     "description": "El ID del elemento Jellyfin."
+                }
+            }
+        },
+        "get_live_tv_channels": {
+            "name": "Obtener canales de TV en vivo",
+            "description": "Recuperar canales de Jellyfin TV en vivo disponibles con filtro de búsqueda opcional.",
+            "fields": {
+                "query": {
+                    "name": "Consulta de búsqueda",
+                    "description": "Filtrar canales por nombre o número (opcional)."
+                },
+                "limit": {
+                    "name": "Límite",
+                    "description": "Número máximo de canales a devolver (opcional)."
+                }
+            }
+        },
+        "play_live_tv_channel": {
+            "name": "Reproducir canal de TV en vivo",
+            "description": "Resolver un canal de TV en vivo por número o nombre y reproducirlo.",
+            "fields": {
+                "channel_number": {
+                    "name": "Número de canal",
+                    "description": "Número de canal exacto de Jellyfin."
+                },
+                "channel_name": {
+                    "name": "Nombre del canal",
+                    "description": "Nombre del canal de Jellyfin."
                 }
             }
         }
