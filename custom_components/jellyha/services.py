@@ -601,6 +601,13 @@ async def async_register_services(hass: HomeAssistant) -> None:
 
         # Apply post-filters if specified
         results = []
+        video_only_keys = {
+            "series_name", "series_id", "season", "episode", "season_name",
+            "series_poster_url", "total_episodes", "unplayed_count",
+            "dynamic_range", "video_range", "video_range_type", "video_codec",
+            "video_bit_depth", "dv_profile", "width", "height", "resolution",
+            "aspect_ratio", "trailer_url", "media_streams",
+        }
         for item in transformed:
             if codec_filter and (item.get("audio_codec") or "").lower() != codec_filter:
                 continue
@@ -608,6 +615,9 @@ async def async_register_services(hass: HomeAssistant) -> None:
                 continue
             if is_lossless is not None and item.get("is_lossless") != is_lossless:
                 continue
+            # Strip video-specific null attributes for audio items
+            if item.get("type") in ("Audio", "MusicAlbum", "MusicArtist"):
+                item = {k: v for k, v in item.items() if k not in video_only_keys}
             results.append(item)
             if len(results) >= limit:
                 break
