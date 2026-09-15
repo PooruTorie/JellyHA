@@ -303,6 +303,74 @@
                     "description": "Jellyfin channel name."
                 }
             }
+        },
+        "music_search": {
+            "name": "Music Search",
+            "description": "Search Jellyfin music library for tracks, albums, or artists with FLAC and Hi-Res audio specifications.",
+            "fields": {
+                "query": {
+                    "name": "Search Query",
+                    "description": "Search text for track title, album, or artist."
+                },
+                "search_type": {
+                    "name": "Search Type",
+                    "description": "Type of music items to search for (all, track, album, artist)."
+                },
+                "artist": {
+                    "name": "Artist",
+                    "description": "Filter by artist name."
+                },
+                "album": {
+                    "name": "Album",
+                    "description": "Filter by album title."
+                },
+                "genre": {
+                    "name": "Genre",
+                    "description": "Filter by music genre."
+                },
+                "year": {
+                    "name": "Year",
+                    "description": "Filter by release year."
+                },
+                "codec": {
+                    "name": "Audio Codec / Format",
+                    "description": "Filter by audio codec (e.g. flac, alac, mp3, aac, opus, dsd, wav)."
+                },
+                "is_hi_res": {
+                    "name": "Hi-Res Audio Only",
+                    "description": "Filter for high-resolution audio (24-bit+ or >48kHz or DSD)."
+                },
+                "is_lossless": {
+                    "name": "Lossless Audio Only",
+                    "description": "Filter for lossless audio formats (FLAC, ALAC, WAV, DSD)."
+                },
+                "limit": {
+                    "name": "Limit",
+                    "description": "Maximum number of results to return."
+                }
+            }
+        },
+        "play_music": {
+            "name": "Play Music",
+            "description": "Search and play a music track or album from Jellyfin on any Home Assistant media player (e.g. Kitchen Speaker, Sonos, Cast).",
+            "fields": {
+                "entity_id": {
+                    "name": "Media Player",
+                    "description": "Target Home Assistant media player entity to play the music on."
+                },
+                "query": {
+                    "name": "Search Query / Song Title",
+                    "description": "Song or track name to search for."
+                },
+                "artist": {
+                    "name": "Artist",
+                    "description": "Artist name to search for."
+                },
+                "album": {
+                    "name": "Album",
+                    "description": "Album title to search for."
+                }
+            }
         }
     }
 }

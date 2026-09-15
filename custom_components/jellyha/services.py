@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import asyncio
+from typing import Any
 import voluptuous as vol
 
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse, ServiceResponse
@@ -35,8 +36,15 @@ SERVICE_GET_RECOMMENDATIONS = "get_recommendations"
 SERVICE_GET_ITEM = "get_item"
 SERVICE_GET_LIVE_TV_CHANNELS = "get_live_tv_channels"
 SERVICE_PLAY_LIVE_TV_CHANNEL = "play_live_tv_channel"
+SERVICE_MUSIC_SEARCH = "music_search"
+SERVICE_PLAY_MUSIC = "play_music"
 
-def _get_coordinator(hass: HomeAssistant, config_entry_id: str | None = None, entity_id: str | None = None):
+def _get_coordinator(
+    hass: HomeAssistant,
+    config_entry_id: str | None = None,
+    entity_id: str | None = None,
+    prefer_music: bool = False,
+):
     """Get the JellyHA coordinator from config_entry_id or entity_id."""
     if config_entry_id:
         entry = hass.config_entries.async_get_entry(config_entry_id)
@@ -59,13 +67,89 @@ def _get_coordinator(hass: HomeAssistant, config_entry_id: str | None = None, en
             if c_entry and c_entry.domain == DOMAIN and hasattr(c_entry, "runtime_data") and c_entry.runtime_data:
                 return c_entry.runtime_data.library
 
+    jellyha_entries = [
+        e for e in hass.config_entries.async_entries(DOMAIN)
+        if hasattr(e, "runtime_data") and e.runtime_data
+    ]
+    if not jellyha_entries:
+        raise ValueError("No JellyHA integration loaded")
+
+    # Multi-instance smart selection for music operations
+    if prefer_music and len(jellyha_entries) > 1:
+        # 1. Prefer instance with 'music' in label or device_name
+        for entry in jellyha_entries:
+            label = str(entry.data.get("instance_label", "")).lower()
+            name = str(entry.data.get("device_name", "")).lower()
+            if "music" in label or "music" in name:
+                return entry.runtime_data.library
+
+        # 2. Prefer instance with song count > 0
+        for entry in jellyha_entries:
+            lib = entry.runtime_data.library
+            counts = getattr(lib, "item_counts", {})
+            if counts.get("songs", 0) > 0 or counts.get("albums", 0) > 0:
+                return lib
+
+        # 3. Prefer instance with all libraries (no restricted library list)
+        for entry in jellyha_entries:
+            if not entry.data.get("libraries"):
+                return entry.runtime_data.library
+
     # Default to first available entry
-    jellyha_entries = hass.config_entries.async_entries(DOMAIN)
-    for entry in jellyha_entries:
-        if hasattr(entry, "runtime_data") and entry.runtime_data:
-             return entry.runtime_data.library
-             
-    raise ValueError("No JellyHA integration loaded")
+    return jellyha_entries[0].runtime_data.library
+
+
+def _clean_transformed_item(item: dict[str, Any]) -> dict[str, Any]:
+    """Strip irrelevant null attributes depending on media type to return clean service responses."""
+    if not isinstance(item, dict):
+        return item
+
+    item_type = item.get("type")
+    cleaned = dict(item)
+
+    video_series_keys = {
+        "series_name", "series_id", "season", "episode", "season_name",
+        "series_poster_url", "total_episodes", "unplayed_count",
+        "dynamic_range", "video_range", "video_range_type", "video_codec",
+        "video_bit_depth", "dv_profile", "width", "height", "resolution",
+        "aspect_ratio", "trailer_url", "media_streams",
+    }
+    music_keys = {
+        "artist_name", "album_artist", "album", "album_id",
+        "track_number", "disc_number", "stream_url", "audio_container",
+        "audio_quality_label",
+    }
+    tv_series_keys = {
+        "series_name", "series_id", "season", "episode", "season_name",
+        "series_poster_url", "total_episodes", "unplayed_count",
+    }
+
+    if item_type in ("Audio", "MusicAlbum", "MusicArtist"):
+        for k in video_series_keys:
+            cleaned.pop(k, None)
+    elif item_type == "Movie":
+        for k in music_keys:
+            cleaned.pop(k, None)
+        for k in tv_series_keys:
+            cleaned.pop(k, None)
+    elif item_type == "Series":
+        for k in music_keys:
+            cleaned.pop(k, None)
+        for k in (
+            "season", "episode", "season_name", "series_name", "series_id",
+            "series_poster_url", "dynamic_range", "video_range", "video_range_type",
+            "video_codec", "video_bit_depth", "dv_profile", "width", "height",
+            "resolution", "aspect_ratio", "trailer_url", "media_streams",
+            "audio_codec", "audio_channels", "audio_bit_rate", "audio_sample_rate",
+            "audio_bit_depth", "audio_channel_layout", "is_lossless", "is_hi_res",
+        ):
+            cleaned.pop(k, None)
+    elif item_type == "Episode":
+        for k in music_keys:
+            cleaned.pop(k, None)
+
+    return cleaned
+
 
 # Schemas
 PLAY_ON_CHROMECAST_SCHEMA = vol.Schema(
@@ -219,6 +303,50 @@ PLAY_LIVE_TV_CHANNEL_SCHEMA = vol.Schema({
     vol.Optional("server_entity_id"): cv.entity_id,
     vol.Optional("config_entry_id"): cv.string,
 })
+
+MUSIC_SEARCH_SCHEMA = vol.Schema(
+    {
+        vol.Optional("query"): cv.string,
+        vol.Optional("search_type", default="all"): vol.In(
+            ["all", "track", "song", "album", "artist"]
+        ),
+        vol.Optional("artist"): cv.string,
+        vol.Optional("album"): cv.string,
+        vol.Optional("genre"): cv.string,
+        vol.Optional("year"): cv.positive_int,
+        vol.Optional("codec"): cv.string,
+        vol.Optional("is_hi_res"): cv.boolean,
+        vol.Optional("is_lossless"): cv.boolean,
+        vol.Optional("is_favorite"): cv.boolean,
+        vol.Optional("limit", default=20): cv.positive_int,
+        vol.Optional("offset", default=0): vol.All(vol.Coerce(int), vol.Range(min=0)),
+        vol.Optional("sort_by"): cv.string,
+        vol.Optional("sort_order"): vol.In(["Ascending", "Descending", "ascending", "descending"]),
+        vol.Optional("config_entry_id"): cv.string,
+        vol.Optional("server_entity_id"): cv.entity_id,
+        vol.Optional("entity_id"): cv.entity_id,
+    }
+)
+
+PLAY_MUSIC_SCHEMA = vol.Schema(
+    {
+        vol.Required("entity_id"): cv.entity_id,
+        vol.Optional("query"): cv.string,
+        vol.Optional("artist"): cv.string,
+        vol.Optional("album"): cv.string,
+        vol.Optional("search_type", default="track"): vol.In(
+            ["track", "song", "album", "all"]
+        ),
+        vol.Optional("genre"): cv.string,
+        vol.Optional("year"): cv.positive_int,
+        vol.Optional("codec"): cv.string,
+        vol.Optional("is_hi_res"): cv.boolean,
+        vol.Optional("is_lossless"): cv.boolean,
+        vol.Optional("item_id"): cv.string,
+        vol.Optional("config_entry_id"): cv.string,
+        vol.Optional("server_entity_id"): cv.entity_id,
+    }
+)
 
 async def async_register_services(hass: HomeAssistant) -> None:
     """Register services for JellyHA."""
@@ -475,7 +603,233 @@ async def async_register_services(hass: HomeAssistant) -> None:
             )
 
         results = list(await asyncio.gather(*(coordinator._async_transform_item(item) for item in items)))
+        return {"items": [_clean_transformed_item(item) for item in results]}
+
+    async def async_music_search(call: ServiceCall) -> ServiceResponse:
+        """Search music library and return items with rich audio metadata."""
+        entity_id = call.data.get("entity_id") or call.data.get("server_entity_id")
+        config_entry_id = call.data.get("config_entry_id")
+        coordinator = _get_coordinator(hass, config_entry_id, entity_id, prefer_music=True)
+
+        user_id = coordinator.entry.data.get("user_id")
+        query = call.data.get("query")
+        search_type = call.data.get("search_type", "all")
+        artist = call.data.get("artist")
+        album = call.data.get("album")
+        genre = call.data.get("genre")
+        year = call.data.get("year")
+        codec_filter = (call.data.get("codec") or "").strip().lower()
+        is_hi_res = call.data.get("is_hi_res")
+        is_lossless = call.data.get("is_lossless")
+        is_favorite = call.data.get("is_favorite")
+        limit = call.data.get("limit", 20)
+        offset = call.data.get("offset", 0)
+        sort_by = call.data.get("sort_by")
+        sort_order = call.data.get("sort_order")
+
+        # When filtering by codec/hi-res/lossless in-memory, fetch a larger batch
+        needs_post_filter = bool(codec_filter or is_hi_res is not None or is_lossless is not None)
+        fetch_limit = min(max(limit * 5, 50), 200) if needs_post_filter else limit
+
+        configured_libs = coordinator.entry.data.get("libraries", [])
+
+        raw_items = await coordinator._api.search_music(
+            user_id=user_id,
+            query=query,
+            search_type=search_type,
+            artist=artist,
+            album=album,
+            genre=genre,
+            year=year,
+            is_favorite=is_favorite,
+            limit=fetch_limit,
+            offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            library_ids=configured_libs if configured_libs else None,
+        )
+
+        transformed = list(
+            await asyncio.gather(*(coordinator._async_transform_item(item) for item in raw_items))
+        )
+
+        # Apply post-filters if specified
+        results = []
+        for item in transformed:
+            if codec_filter and (item.get("audio_codec") or "").lower() != codec_filter:
+                continue
+            if is_hi_res is not None and item.get("is_hi_res") != is_hi_res:
+                continue
+            if is_lossless is not None and item.get("is_lossless") != is_lossless:
+                continue
+            results.append(_clean_transformed_item(item))
+            if len(results) >= limit:
+                break
+
         return {"items": results}
+
+    async def async_play_music(call: ServiceCall) -> None:
+        """Search and play a music track or album on a Home Assistant media player."""
+        target_player = call.data["entity_id"]
+        direct_item_id = call.data.get("item_id")
+        config_entry_id = call.data.get("config_entry_id")
+        server_entity_id = call.data.get("server_entity_id")
+        coordinator = _get_coordinator(hass, config_entry_id, server_entity_id, prefer_music=True)
+        api = coordinator._api
+        user_id = coordinator.entry.data.get("user_id")
+
+        item = None
+        if direct_item_id:
+            raw = await api.get_item(user_id, direct_item_id)
+            if raw:
+                item = await coordinator._async_transform_item(raw)
+        else:
+            # Search using music_search logic
+            search_res = await async_music_search(
+                ServiceCall(
+                    DOMAIN,
+                    SERVICE_MUSIC_SEARCH,
+                    {
+                        "query": call.data.get("query"),
+                        "artist": call.data.get("artist"),
+                        "album": call.data.get("album"),
+                        "search_type": call.data.get("search_type", "track"),
+                        "genre": call.data.get("genre"),
+                        "year": call.data.get("year"),
+                        "codec": call.data.get("codec"),
+                        "is_hi_res": call.data.get("is_hi_res"),
+                        "is_lossless": call.data.get("is_lossless"),
+                        "limit": 1,
+                        "config_entry_id": coordinator.entry.entry_id,
+                    },
+                )
+            )
+            items = search_res.get("items", []) if isinstance(search_res, dict) else []
+            if items:
+                item = items[0]
+
+        if not item:
+            _LOGGER.warning(
+                "No music track found matching query=%s, artist=%s, album=%s",
+                call.data.get("query"),
+                call.data.get("artist"),
+                call.data.get("album"),
+            )
+            raise ValueError(
+                f"No music found in Jellyfin for query='{call.data.get('query')}' artist='{call.data.get('artist')}'"
+            )
+
+        # Resolve media URL and MIME type
+        item_id = item["id"]
+        item_type = item.get("type", "Audio")
+        container = (item.get("audio_container") or item.get("container") or "mp3").lower()
+
+        # If an album was selected, resolve to its first track
+        if item_type == "MusicAlbum":
+            try:
+                tracks_result = await api._request(
+                    "GET",
+                    "/Items",
+                    params={
+                        "UserId": user_id,
+                        "ParentId": item_id,
+                        "IncludeItemTypes": "Audio",
+                        "SortBy": "IndexNumber",
+                        "SortOrder": "Ascending",
+                        "Limit": 1,
+                        "Recursive": "true",
+                    },
+                )
+                first_tracks = tracks_result.get("Items", [])
+                if first_tracks:
+                    item = await coordinator._async_transform_item(first_tracks[0])
+                    item_id = item["id"]
+                    container = (item.get("audio_container") or item.get("container") or "mp3").lower()
+                else:
+                    raise ValueError(f"Album '{item.get('name')}' has no playable tracks")
+            except Exception as err:
+                _LOGGER.debug("Could not resolve first track for album %s: %s", item_id, err)
+                if isinstance(err, ValueError):
+                    raise
+
+        # Determine exact MIME type
+        if container == "flac":
+            mime_type = "audio/flac"
+        elif container in ("m4a", "aac"):
+            mime_type = "audio/mp4"
+        elif container in ("ogg", "oga", "opus"):
+            mime_type = "audio/ogg"
+        elif container == "wav":
+            mime_type = "audio/wav"
+        else:
+            mime_type = "audio/mpeg"
+
+        # Stream URL
+        media_url = item.get("stream_url")
+        if not media_url:
+            media_url = f"{api._server_url}/Audio/{item_id}/stream?static=true&api_key={api._api_key}&ApiKey={api._api_key}"
+
+        # Cover art: provide direct absolute server URL so external speakers (Chromecast, Sonos) can load it
+        thumb_url = api.get_image_url(item_id, "Primary")
+        album_id = item.get("album_id")
+        if not thumb_url and album_id:
+            thumb_url = api.get_image_url(album_id, "Primary")
+
+        title = item.get("name")
+        artist = item.get("artist_name") or item.get("album_artist")
+        album = item.get("album")
+
+        metadata = {
+            "metadataType": 3,
+            "title": title,
+            "artist": artist,
+            "albumTitle": album,
+        }
+        if thumb_url:
+            metadata["images"] = [{"url": thumb_url}]
+
+        extra_payload = {
+            "title": title,
+            "artist": artist,
+            "album_name": album,
+            "thumb": thumb_url,
+            "autoplay": True,
+            "metadata": metadata,
+        }
+
+        # Stop previous playback if currently active to reset buffers
+        target_state = hass.states.get(target_player)
+        if target_state and target_state.state in ("playing", "paused", "buffering"):
+            try:
+                await hass.services.async_call(
+                    MEDIA_PLAYER_DOMAIN,
+                    SERVICE_MEDIA_STOP,
+                    {"entity_id": target_player},
+                    blocking=True,
+                )
+                await asyncio.sleep(0.2)
+            except Exception as err:
+                _LOGGER.debug("Could not stop prior playback on %s: %s", target_player, err)
+
+        _LOGGER.info(
+            "Playing '%s' by '%s' on %s (MIME: %s)",
+            item.get("name"),
+            item.get("artist_name"),
+            target_player,
+            mime_type,
+        )
+
+        await hass.services.async_call(
+            MEDIA_PLAYER_DOMAIN,
+            SERVICE_PLAY_MEDIA,
+            {
+                "entity_id": target_player,
+                ATTR_MEDIA_CONTENT_ID: media_url,
+                ATTR_MEDIA_CONTENT_TYPE: mime_type,
+                "extra": extra_payload,
+            },
+            blocking=True,
+        )
 
     async def async_delete_item(call: ServiceCall) -> None:
         """Delete an item from Jellyfin library."""
@@ -492,7 +846,8 @@ async def async_register_services(hass: HomeAssistant) -> None:
         try:
             entity_id = call.data.get("entity_id") or call.data.get("server_entity_id")
             coordinator = _get_coordinator(hass, call.data.get("config_entry_id"), entity_id)
-            user_id = coordinator.entry.data.get("user_id")
+            state = hass.states.get(entity_id) if entity_id else None
+            user_id = (state.attributes.get("user_id") if state else None) or coordinator.entry.data.get("user_id")
             await coordinator._api.update_favorite(user_id, call.data["item_id"], call.data["is_favorite"])
             await coordinator.async_refresh()
         except Exception as e:
@@ -503,7 +858,8 @@ async def async_register_services(hass: HomeAssistant) -> None:
         try:
             entity_id = call.data.get("entity_id") or call.data.get("server_entity_id")
             coordinator = _get_coordinator(hass, call.data.get("config_entry_id"), entity_id)
-            user_id = coordinator.entry.data.get("user_id")
+            state = hass.states.get(entity_id) if entity_id else None
+            user_id = (state.attributes.get("user_id") if state else None) or coordinator.entry.data.get("user_id")
             await coordinator._api.update_played_status(user_id, call.data["item_id"], call.data["is_played"])
             await coordinator.async_refresh()
         except Exception as e:
@@ -569,7 +925,12 @@ async def async_register_services(hass: HomeAssistant) -> None:
                     if dev_id and s.get("DeviceId") == dev_id:
                         target_session_id = s.get("Id")
                         break
-                    if dev_name and s.get("DeviceName", "").strip().lower() == dev_name.strip().lower():
+                    s_names = {
+                        str(s.get("DeviceName") or "").strip().lower(),
+                        str(s.get("CustomName") or "").strip().lower(),
+                        str(s.get("DeviceCustomName") or "").strip().lower(),
+                    }
+                    if dev_name and dev_name.strip().lower() in s_names:
                         target_session_id = s.get("Id")
                         break
                     if client and s.get("Client", "").strip().lower() == client.strip().lower():
@@ -583,7 +944,12 @@ async def async_register_services(hass: HomeAssistant) -> None:
                     if dev_id and s.get("DeviceId") == dev_id:
                         target_session_id = s.get("Id")
                         break
-                    if dev_name and s.get("DeviceName", "").strip().lower() == dev_name.strip().lower():
+                    s_names = {
+                        str(s.get("DeviceName") or "").strip().lower(),
+                        str(s.get("CustomName") or "").strip().lower(),
+                        str(s.get("DeviceCustomName") or "").strip().lower(),
+                    }
+                    if dev_name and dev_name.strip().lower() in s_names:
                         target_session_id = s.get("Id")
                         break
                     if client and s.get("Client", "").strip().lower() == client.strip().lower():
@@ -631,7 +997,7 @@ async def async_register_services(hass: HomeAssistant) -> None:
             user_id = coordinator.entry.data.get("user_id")
             items = await coordinator._api.get_similar_items(user_id=user_id, item_id=call.data["item_id"], limit=call.data["limit"])
             results = list(await asyncio.gather(*(coordinator._async_transform_item(item) for item in items)))
-            return {"items": results}
+            return {"items": [_clean_transformed_item(r) for r in results]}
         except Exception as e:
             raise ValueError(f"Recommendations failed: {e}") from e
 
@@ -646,7 +1012,7 @@ async def async_register_services(hass: HomeAssistant) -> None:
                 return {"item": None}
 
             transformed_item = await coordinator._async_transform_item(raw_item)
-            return {"item": transformed_item}
+            return {"item": _clean_transformed_item(transformed_item) if transformed_item else None}
         except Exception as e:
             raise ValueError(f"Get Item failed: {e}") from e
 
@@ -739,7 +1105,12 @@ async def async_register_services(hass: HomeAssistant) -> None:
             for session in sessions:
                 if device_id and session.get("DeviceId") == device_id:
                     return session.get("Id")
-                if device_name and session.get("DeviceName", "").strip().lower() == device_name.strip().lower():
+                s_names = {
+                    str(session.get("DeviceName") or "").strip().lower(),
+                    str(session.get("CustomName") or "").strip().lower(),
+                    str(session.get("DeviceCustomName") or "").strip().lower(),
+                }
+                if device_name and device_name.strip().lower() in s_names:
                     return session.get("Id")
                 if client and session.get("Client", "").strip().lower() == client.strip().lower():
                     return session.get("Id")
@@ -781,6 +1152,8 @@ async def async_register_services(hass: HomeAssistant) -> None:
         (SERVICE_GET_ITEM, async_get_item, GET_ITEM_SCHEMA, True),
         (SERVICE_GET_LIVE_TV_CHANNELS, async_get_live_tv_channels, LIVE_TV_CHANNELS_SCHEMA, True),
         (SERVICE_PLAY_LIVE_TV_CHANNEL, async_play_live_tv_channel, PLAY_LIVE_TV_CHANNEL_SCHEMA),
+        (SERVICE_MUSIC_SEARCH, async_music_search, MUSIC_SEARCH_SCHEMA, True),
+        (SERVICE_PLAY_MUSIC, async_play_music, PLAY_MUSIC_SCHEMA),
     ]
 
     for name, func, schema, *resp in service_map:

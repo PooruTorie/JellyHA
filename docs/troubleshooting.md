@@ -81,6 +81,36 @@ If the **Media** entry does not appear in the Home Assistant sidebar:
 
 ---
 
+### Live TV Channels Not Showing in Media Browser or Entities
+
+If Live TV channels do not appear in the Media Browser or under `sensor.jellyha_live_tv_channels`:
+
+1. **Enable Live TV in Integration Options:**
+   - Go to **Settings -> Devices & Services -> Jellyfin (JellyHA)**.
+   - Click **Configure** / **Options**.
+   - Check **Enable Live TV** and submit.
+   - Live TV is disabled by default to prevent unnecessary API polling for setups without live TV tuners or M3U/IPTV sources.
+2. **Verify Server Live TV Access:**
+   - Ensure your Jellyfin user account has permissions enabled to view Live TV in Jellyfin Dashboard -> Users -> Permissions -> *Enable access to Live TV*.
+
+---
+
+### "Unknown entity: sensor.jellyha_now_playing_<user>"
+
+If your existing dashboard cards show an error for the legacy now playing sensor:
+
+- Legacy `sensor.jellyha_now_playing_<user>` entities have been deprecated in favor of native `media_player.jellyha_<user>` entities.
+- In your `custom:jellyha-now-playing-card` or dashboard configuration, simply update:
+  ```yaml
+  # Old:
+  entity: sensor.jellyha_now_playing_admin
+  # New:
+  entity: media_player.jellyha_admin
+  ```
+- All visual badges, artwork, ratings, scrub bars, and transport controls are 100% identical and fully supported.
+
+---
+
 ### "Connection lost" on Startup
 
 - Usually caused by conflicting older integration versions or duplicate WebSocket subscriptions.

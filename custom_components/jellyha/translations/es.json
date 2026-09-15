@@ -410,6 +410,74 @@
                     "description": "Nombre del canal de Jellyfin."
                 }
             }
+        },
+        "music_search": {
+            "name": "Búsqueda de música",
+            "description": "Buscar pistas, álbumes o artistas en Jellyfin con especificaciones FLAC y Hi-Res.",
+            "fields": {
+                "query": {
+                    "name": "Consulta de búsqueda",
+                    "description": "Texto de búsqueda para título, álbum o artista."
+                },
+                "search_type": {
+                    "name": "Tipo de búsqueda",
+                    "description": "Tipo de elementos (todo, pista, álbum, artista)."
+                },
+                "artist": {
+                    "name": "Artista",
+                    "description": "Filtrar por nombre de artista."
+                },
+                "album": {
+                    "name": "Álbum",
+                    "description": "Filtrar por título de álbum."
+                },
+                "genre": {
+                    "name": "Género",
+                    "description": "Filtrar por género musical."
+                },
+                "year": {
+                    "name": "Año",
+                    "description": "Filtrar por año de lanzamiento."
+                },
+                "codec": {
+                    "name": "Códec de audio / Formato",
+                    "description": "Filtrar por códec de audio (ej. flac, alac, mp3, aac, opus, dsd, wav)."
+                },
+                "is_hi_res": {
+                    "name": "Solo audio Hi-Res",
+                    "description": "Filtrar por audio de alta resolución (24-bit+ o >48kHz o DSD)."
+                },
+                "is_lossless": {
+                    "name": "Solo audio sin pérdidas",
+                    "description": "Filtrar formatos de audio sin pérdidas (FLAC, ALAC, WAV, DSD)."
+                },
+                "limit": {
+                    "name": "Límite",
+                    "description": "Número máximo de resultados devueltos."
+                }
+            }
+        },
+        "play_music": {
+            "name": "Reproducir música",
+            "description": "Buscar y reproducir una pista o álbum de Jellyfin en cualquier reproductor multimedia de Home Assistant.",
+            "fields": {
+                "entity_id": {
+                    "name": "Reproductor multimedia",
+                    "description": "Reproductor multimedia de Home Assistant objetivo."
+                },
+                "query": {
+                    "name": "Consulta de búsqueda / Título",
+                    "description": "Nombre de la canción o pista a buscar."
+                },
+                "artist": {
+                    "name": "Artista",
+                    "description": "Nombre del artista a buscar."
+                },
+                "album": {
+                    "name": "Álbum",
+                    "description": "Título del álbum a buscar."
+                }
+            }
         }
     }
 }

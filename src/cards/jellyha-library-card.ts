@@ -23,7 +23,7 @@ import '../editors/jellyha-library-editor';
 import '../components/jellyha-media-item';
 
 // Register card in the custom cards array
-const CARD_VERSION = '1.3.1';
+const CARD_VERSION = '1.4.0';
 
 console.info(
   `%c JELLYHA-LIBRARY-CARD %c v${CARD_VERSION} `,
@@ -1525,6 +1525,8 @@ export class JellyHALibraryCard extends LitElement {
       video_range_type: item.video_range_type || null,
       video_codec: item.video_codec || null,
       dv_profile: item.dv_profile || null,
+      path: item.path || null,
+      filepath: item.filepath || item.path || null,
       config_entry_id: item.config_entry_id || item.entry_id || null,
       action_type: type,
     };

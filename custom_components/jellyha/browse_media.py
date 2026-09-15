@@ -15,6 +15,7 @@ from homeassistant.core import HomeAssistant
 from datetime import timedelta
 
 from .const import DOMAIN
+from .media_strategy import MediaStrategy
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -682,7 +683,9 @@ async def _build_album_tracks(coordinator, entry_id: str, album_id: str) -> Brow
         track_id = track.get("Id", "")
         track_name = track.get("Name", "Unknown Track")
         index = track.get("IndexNumber")
-        title = f"{index}. {track_name}" if index else track_name
+        track_artists = track.get("Artists", [])
+        artist = ", ".join(track_artists) if track_artists else (track.get("AlbumArtist") or album_artist)
+        title = MediaStrategy.format_audio_title(artist, track_name)
         mime_type = _audio_mime_type(track.get("Container"))
 
         children.append(
@@ -772,7 +775,7 @@ async def _build_recent_list(coordinator, entry_id: str) -> BrowseMedia:
             if item_type == "Audio":
                 artists = item.get("Artists", [])
                 artist = ", ".join(artists) if artists else item.get("AlbumArtist", "")
-                title = f"{artist} - {name}" if artist else name
+                title = MediaStrategy.format_audio_title(artist, name)
             elif item_type == "Episode":
                 series_name = item.get("SeriesName", "")
                 season_num = item.get("ParentIndexNumber")
@@ -894,7 +897,7 @@ async def _build_favorites_list(coordinator, entry_id: str) -> BrowseMedia:
             if item_type == "Audio":
                 artists = item.get("Artists", [])
                 artist = ", ".join(artists) if artists else item.get("AlbumArtist", "")
-                title = f"{artist} - {name}" if artist else name
+                title = MediaStrategy.format_audio_title(artist, name)
             elif item_type == "Episode":
                 series_name = item.get("SeriesName", "")
                 season_num = item.get("ParentIndexNumber")
@@ -1048,8 +1051,10 @@ async def async_browse_media_search(
         year = item.get("ProductionYear", "")
         artist = item.get("AlbumArtist", "")
 
-        if item_type == "Audio" and artist:
-            title = f"{name} — {artist}"
+        if item_type == "Audio":
+            artists = item.get("Artists", [])
+            artist_name = ", ".join(artists) if artists else artist
+            title = MediaStrategy.format_audio_title(artist_name, name)
         elif item_type == "MusicAlbum" and artist:
             title = f"{name} — {artist}"
         elif year:
@@ -1192,8 +1197,10 @@ async def _build_playlist_items(coordinator, entry_id: str, playlist_id: str) ->
 
         name = item.get("Name", "Unknown")
         artist = item.get("AlbumArtist", "")
-        if item_type == "Audio" and artist:
-            title = f"{name} — {artist}"
+        if item_type == "Audio":
+            artists = item.get("Artists", [])
+            artist_name = ", ".join(artists) if artists else artist
+            title = MediaStrategy.format_audio_title(artist_name, name)
         else:
             title = name
 

@@ -73,7 +73,7 @@ Users can opt-in to dedicated media player entities per physical client device (
 * `sensor.jellyha_transcoding_streams`: Count of active media streams currently being transcoded (attribute `transcode_sessions` contains codec, reason, framerate)
 * `sensor.jellyha_media_storage_free`: Free storage space on primary media drive in GB (attributes: `free_bytes`, `used_bytes`, `total_bytes`, `free_tb`, `used_percent`)
 * `sensor.jellyha_media_storage_free_percentage`: Free storage space percentage on primary media drive (e.g. `62` %)
-* `sensor.jellyha_library`: General library aggregate count (attributes: `movies`, `series`, `videos`, `episodes`, `entry_id`)
+* `sensor.jellyha_library`: General library aggregate count (attributes: `movies`, `series`, `videos`, `episodes`, `songs`, `albums`, `artists`, `entry_id`)
 * `sensor.jellyha_movies`: Total movies in library (attributes: `watched`, `unwatched`, `favorites`)
 * `sensor.jellyha_series`: Total TV series in library (attributes: `watched`, `unwatched`, `favorites`, `total_episodes`, `unwatched_episodes`)
 * `sensor.jellyha_episodes`: Total episodes count across all shows (attributes: `watched`, `unwatched`)
@@ -168,6 +168,7 @@ Searches the Jellyfin library and returns structured media objects into an autom
   * `video_bit_depth`: Integer (`10`, `8`)
   * `dv_profile`: Integer (Dolby Vision profile number)
   * `poster_url`, `image_url`, `backdrop_url`, `jellyfin_url`
+  * `path`, `filepath`: Absolute server file path on disk (e.g. `"/media/movies/Inception.mkv"`)
 
 ### 3. `jellyha.session_control`
 Controls a Jellyfin playback session directly.
@@ -234,6 +235,56 @@ Retrieves available Live TV channels from Jellyfin into an automation `response_
   * `name`: Channel display name (e.g. `"HBO HD"`)
   * `number`: Channel number string (e.g. `"104"`)
   * `normalized_name`: Normalized alphanumeric lowercase string (e.g. `"hbohd"`)
+
+### 11. `jellyha.music_search`
+High-performance indexed music search for tracks, albums, or artists with FLAC, ALAC, and Hi-Res audio specifications. Avoids unindexed SQLite table scans and returns results into `response_variable`.
+* **Fields**:
+  * `query` (Optional, string): Search text for track title, album, or artist.
+  * `search_type` (Optional, string, default: `"all"`): `"all"`, `"track"`, `"song"`, `"album"`, `"artist"`.
+  * `artist` (Optional, string): Filter by artist name.
+  * `album` (Optional, string): Filter by album title.
+  * `genre` (Optional, string): Filter by music genre.
+  * `year` (Optional, integer): Filter by release year.
+  * `codec` (Optional, string): Filter by audio codec (e.g. `flac`, `alac`, `mp3`, `aac`, `opus`, `dsd`, `wav`).
+  * `is_hi_res` (Optional, boolean): Filter for high-resolution audio (24-bit+ or >48kHz or DSD).
+  * `is_lossless` (Optional, boolean): Filter for lossless audio formats (FLAC, ALAC, WAV, DSD).
+  * `is_favorite` (Optional, boolean): Filter by favorite status.
+  * `sort_by` (Optional, string, default: `"SortName"`): `"SortName"`, `"AlbumArtist"`, `"Album"`, `"DateCreated"`, `"PremiereDate"`, `"PlayCount"`, `"Random"`.
+  * `sort_order` (Optional, string, default: `"Ascending"`): `"Ascending"`, `"Descending"`.
+  * `limit` (Optional, integer, default: 20): Maximum number of results.
+  * `offset` (Optional, integer, default: 0): Pagination offset.
+  * `server_entity_id` / `config_entry_id` / `entity_id` (Optional, string): Target JellyHA instance (defaults to Music instance via smart multi-instance routing).
+* **Return Structure**:
+  Returns a dictionary `{"items": [...]}` where each item contains:
+  * `id`: Item GUID
+  * `name`: Track, album, or artist name
+  * `type`: `"Audio"`, `"MusicAlbum"`, or `"MusicArtist"`
+  * `artist_name`, `album_artist`: Artist names
+  * `album`, `album_id`: Parent album details
+  * `track_number`, `disc_number`: Track index and disc number
+  * `duration_seconds`, `runtime_minutes`: Track duration
+  * `stream_url`: Direct bitstream URL for bit-perfect streaming
+  * `path`, `filepath`: Physical server file path
+  * `audio_codec`: Audio format (e.g. `flac`, `alac`, `mp3`)
+  * `audio_bit_depth`: Bit depth (e.g. `24`, `16`)
+  * `audio_sample_rate`: Sample rate in Hz (e.g. `96000`, `44100`)
+  * `audio_channels`, `audio_channel_layout`: Channel configuration (e.g. `2`, `"stereo"`)
+  * `is_lossless`, `is_hi_res`: Boolean flags
+  * `audio_quality_label`: Human-readable badge (e.g. `"24-bit / 96 kHz FLAC (Hi-Res Lossless)"`)
+
+### 12. `jellyha.play_music`
+Search and play music from Jellyfin directly on any Home Assistant media player (e.g. `media_player.kitchen_speaker`, Sonos, Cast, Wiim, HomePod). Designed for voice assistants (Assist / LLMs) and 1-tap automations.
+* **Fields**:
+  * `entity_id` (Required, string): Target Home Assistant media player entity to play the music on.
+  * `query` (Optional, string): Song title or text to search for.
+  * `artist` (Optional, string): Artist name.
+  * `album` (Optional, string): Album title.
+  * `search_type` (Optional, string, default: `"track"`): `"track"`, `"album"`.
+  * `codec` (Optional, string): Filter by audio codec.
+  * `is_hi_res` (Optional, boolean): Play only if Hi-Res audio.
+  * `is_lossless` (Optional, boolean): Play only if lossless.
+  * `item_id` (Optional, string): Direct Jellyfin track or album ID (bypasses search).
+  * `server_entity_id` / `config_entry_id` (Optional, string): Target JellyHA instance (auto-selects Music instance in multi-instance setups).
 
 ---
 
@@ -619,6 +670,7 @@ The `jellyha-library-card` and `jellyha-now-playing-card` provide rich UI and au
     * `is_played`: Boolean (true if marked watched)
     * `is_favorite`: Boolean (true if favorited)
     * `jellyfin_url`: Direct URL to item in Jellyfin web client
+    * `path` / `filepath`: Server disk file path to media file (e.g. `"/media/movies/The Matrix (1999)/The Matrix.mkv"`), ideal for routing to external players (Kodi, MPV, VLC)
     * `action_type`: Interaction type string (`"click"`, `"hold"`, or `"double_tap"`)
     * `config_entry_id` / `entry_id`: Home Assistant config entry ID string
   * **TV Shows & Episodes**:

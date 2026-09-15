@@ -1,6 +1,6 @@
 # JellyHA — Jellyfin for Home Assistant
 
-**v1.3.1** · [Full Changelog](https://github.com/zupancicmarko/JellyHA/blob/main/CHANGELOG.md) · [Documentation](https://github.com/zupancicmarko/JellyHA/tree/main/docs)
+**v1.4.0** · [Full Changelog](https://github.com/zupancicmarko/JellyHA/blob/main/CHANGELOG.md) · [Documentation](https://github.com/zupancicmarko/JellyHA/tree/main/docs)
 
 ![JellyHA Library Card](https://github.com/zupancicmarko/JellyHA/raw/main/docs/JellyHA-Library-Grid.png)
 
@@ -8,14 +8,14 @@ JellyHA integrates your Jellyfin media server directly into Home Assistant with 
 
 ---
 
-### 🆕 What's new in v1.3.1
+### 🆕 What's new in v1.4.0
 
-- **Album & Playlist Playback** — Play albums and playlists directly in Media Browser and media players (#25)
-- **Audio Streaming & Cast Proxies** — Dedicated proxy endpoints and MIME type classification for Cast audio
-- **Clean Display Stream Filenames** — Clean track, movie, and episode names in Cast stream URLs
-- **Library-Scoped Favorites** — Scoped browsing to authorized libraries configured for each instance
-- **Active Session Remote Control** — Automatically route media player play requests to active Jellyfin clients
-- **Cinematic Hero Banner Card Recipes** — Ready-to-use Lovelace Markdown cards for newly added media
+- 📡 **Live TV Channels & Direct Tuning** — Browse Live TV channels visually in Media Browser and tune by channel number or name via `jellyha.play_live_tv_channel` (compatible with Voice Assist) (#11, #38)
+- 🎵 **Dedicated Music Search & Hi-Res Audio** — 1-step playback on any room speaker via `jellyha.play_music`, fast indexed search via `jellyha.music_search`, and bit-perfect FLAC / ALAC / Hi-Res audio inspection (#26)
+- 📁 **Direct Media File Paths** — Expose `path` and `filepath` in actions and card click scripts for external media players like Kodi, VLC, or MPV (#37)
+- 📊 **Watched Percentage & Per-Library Storage Sensors** — Standardized percentage sensors for Long-Term Statistics and per-library GB storage size meters (#35, #36)
+- 🏷️ **Client Nicknames & Exact Device Tracking** — Custom dashboard names in Options Flow and exact device session matching to prevent webOS/browser session collisions (#39)
+- 🎛️ **Card Editor Fix for Grid & List Layouts** — Resolved editor fields rendering smoothly across Carousel, Grid, and List layouts
 
 ---
 

@@ -5,10 +5,27 @@ All notable changes to JellyHA will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.4.0] - 2026-09-15
 
 ### Added
-- **Live TV Support (PR #38, Fixes [#11](https://github.com/zupancicmarko/JellyHA/issues/11))**:
+- **Dedicated Music Search & Playback Services (Fixes [#26](https://github.com/zupancicmarko/JellyHA/issues/26))**:
+  - Added `jellyha.music_search`: An indexed, sub-50ms music search action querying tracks, albums, or artists with FLAC, ALAC, and Hi-Res audio specifications returned to `response_variable`.
+  - Added `jellyha.play_music`: A 1-step action to search and play a song or album from Jellyfin directly on any Home Assistant media player (e.g. Kitchen Speaker, Sonos, Google Cast, Wiim, HomePod). Designed for voice assistants (Home Assistant Assist / LLMs) and automations.
+  - Added full **FLAC, ALAC & Hi-Res Audio** stream extraction via `MediaStrategy.extract_audio_stream_attributes`: exposes `audio_codec`, `audio_container`, `bit_depth` (16, 24, 32-bit), `sample_rate` (44.1 to 192 kHz), `channels`, `channel_layout`, `bit_rate`, `is_lossless`, `is_hi_res`, and human-readable badges (`audio_quality_label`, e.g. `"24-bit / 96 kHz FLAC (Hi-Res Lossless)"`).
+  - Added direct bit-perfect audio stream URLs (`stream_url`) and disk paths (`path`, `filepath`).
+  - Added clean display format (`Artist - Song Title`) for music playback in Media Browser, stripping file extensions (`.flac`, `.mp3`) and track number prefixes across `media_player` titles, Media Browser track lists, signed stream URLs, and `Content-Disposition` headers.
+  - Full **Multi-Instance Smart Routing**: When running separate instances (e.g. "JellyHA Movies" and "JellyHA Music"), voice commands and automations without explicit instance parameters automatically route to the Music instance.
+  - Added `songs`, `albums`, and `artists` count attributes to `sensor.jellyha_library`.
+- **Expose Media File Path in Actions & Cards (Fixes [#37](https://github.com/zupancicmarko/JellyHA/issues/37))**:
+  - Exposed `path` and `filepath` in the `jellyha.get_item` response, `jellyha.search`, and `jellyha.get_recommendations`, providing the absolute server file path on disk.
+  - Injected `path` and `filepath` into the execution variables of the Lovelace Library Card "Run Script" action (`call-service`) and `jellyha_item_clicked` events, making it easy to route local paths to external media players (Kodi, MPV, VLC).
+  - Updated the Kodi external player script example ([`card_action_play_on_kodi.yaml`](examples/scripts/card_action_play_on_kodi.yaml)) with direct file path playback mode (`playback_mode: "direct_path"`), enabling direct playback without streaming add-ons when Kodi has access to local or network SMB/NFS storage.
+- **Standardized Watched Percentage Sensors (PR [#35](https://github.com/zupancicmarko/JellyHA/pull/35))**:
+  - Added `sensor.jellyha_library_movies_watched_percentage`, `sensor.jellyha_library_series_watched_percentage`, and `sensor.jellyha_library_episodes_watched_percentage`.
+  - Configured with `SensorStateClass.MEASUREMENT` for Home Assistant Long-Term Statistics (LTS) tracking and historical graphs.
+- **Per-Library Storage Size Sensors (PR [#36](https://github.com/zupancicmarko/JellyHA/pull/36))**:
+  - Added dedicated per-library storage size sensors (`sensor.jellyha_library_<name>_storage_size`) with `SensorDeviceClass.DATA_SIZE` and `SensorStateClass.MEASUREMENT` in GB with raw byte breakdown.
+- **Live TV Support (PR [#38](https://github.com/zupancicmarko/JellyHA/pull/38), Fixes [#11](https://github.com/zupancicmarko/JellyHA/issues/11))**:
   - Added visual Live TV channel browsing with 1-tap playback in the Media Browser under a dedicated **📡 Live TV** category with authenticated channel logos and channel numbers.
   - Added `enable_live_tv` toggle in Integration Options Flow (defaults to `false`) to eliminate unnecessary API polling for setups without TV tuners or IPTV.
   - Added lightweight `sensor.jellyha_live_tv_channels` reporting total channel count with recorder database protection against SQLite attribute size limits.
@@ -16,9 +33,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Full multi-instance support and localization across 7 languages (`en`, `sl`, `de`, `fr`, `es`, `it`, `ru`).
 
 ### Changed
+- **Now Playing Card Migration Documentation (Fixes [#34](https://github.com/zupancicmarko/JellyHA/issues/34))**:
+  - Documented the seamless 1-line migration path from deprecated `sensor.jellyha_now_playing_<user>` to `media_player.jellyha_<user>` in `README.md`, `docs/cards.md`, and `docs/entities.md`.
+  - Clarified that `custom:jellyha-now-playing-card` retains 100% visual and functional parity (fanart, ratings, season/episode badges, live scrub bar, transport controls) and requires no third-party cards or dashboard rewrites.
+  - Enhanced `jellyha.update_favorite` and `jellyha.mark_watched` actions to resolve target `user_id` from entity attributes when called with `media_player.jellyha_<user>`, ensuring correct per-user state in multi-user households.
 - **Device Custom Names in Options Flow (PR [#39](https://github.com/zupancicmarko/JellyHA/pull/39))**: Prioritized `CustomName` when generating the device player list in Integration Options Flow, displaying user-assigned nicknames from the Jellyfin Dashboard (e.g., "Living Room OLED") instead of generic hardware labels.
 
 ### Fixed
+- **Library Card Editor Rendering in Grid and List Layouts**: Fixed card editor fields disappearing or failing to render when selecting Grid or List layouts due to an unhandled `ReferenceError: columnsLabel is not defined`.
+- **Music Library Sync & Audio Search Infinite Hang (Fixes [#26](https://github.com/zupancicmarko/JellyHA/issues/26))**:
+  - Resolved `media_type: Audio` search hanging indefinitely by enforcing indexed `SortBy=SortName` on audio queries instead of unindexed `DateCreated`, preventing server-side SQLite full table scans across large song libraries.
+  - Resolved music-only library instances showing `0` items on `sensor.jellyha_library` and watched sensors by fetching instant item counts from Jellyfin's `GET /Items/Counts?userId={user_id}` without downloading tens of thousands of track objects into Home Assistant memory.
 - **Device Session Collisions on webOS & Browsers (Fixes [#39](https://github.com/zupancicmarko/JellyHA/pull/39))**: Enforced exact `DeviceId` matching across device media players, companion session checks, and playback services. This eliminates cross-device session collisions caused by fuzzy 8-character and 16-character prefix slicing, which previously caused LG webOS TVs, Samsung Tizen TVs, and web browser clients to match each other due to shared base64 User-Agent prefixes (`Mozilla/5.0...`).
 
 ## [1.3.1] - 2026-09-14
