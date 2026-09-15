@@ -81,6 +81,8 @@ export interface MediaItem {
     artist_name?: string;
     album_artist?: string;
     album?: string;
+    path?: string;
+    filepath?: string;
 }
 
 export interface JellyHALibraryCardConfig extends LovelaceCardConfig {

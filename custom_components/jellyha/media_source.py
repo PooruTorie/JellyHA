@@ -16,6 +16,7 @@ from homeassistant.core import HomeAssistant
 
 from .browse_media import async_browse_media
 from .const import DOMAIN
+from .media_strategy import MediaStrategy
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -110,6 +111,9 @@ class JellyHAMediaSource(MediaSource):
             
             # Construct friendly filename for stream URL so players display Title & Artist
             filename = self._build_friendly_filename(item_info)
+            if filename and item_type == "Audio":
+                ext = container if container else ("flac" if mime == "audio/flac" else "mp3")
+                filename = f"{filename}.{ext}"
         except Exception:
             pass
 
@@ -237,11 +241,10 @@ class JellyHAMediaSource(MediaSource):
 
         if item_type == "Audio":
             artists = item_info.get("Artists", [])
-            artist = ", ".join(artists) if artists else item_info.get("AlbumArtist", "")
-            if artist and name:
-                base = f"{artist} - {name}"
-            else:
-                base = name or "audio"
+            artist = ", ".join(artists) if artists else (item_info.get("AlbumArtist") or "")
+            if not artist and item_info.get("ArtistItems"):
+                artist = item_info["ArtistItems"][0].get("Name", "")
+            base = MediaStrategy.format_audio_title(artist, name)
         elif item_type == "Episode":
             series = item_info.get("SeriesName", "")
             season_num = item_info.get("ParentIndexNumber")

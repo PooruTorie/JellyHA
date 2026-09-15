@@ -769,3 +769,245 @@ play_live_tv_channel:
       selector:
         entity:
           integration: jellyha
+
+
+music_search:
+  name: Music Search
+  description: Search Jellyfin music library for tracks, albums, or artists with FLAC and Hi-Res audio specifications.
+  fields:
+    query:
+      name: Search Query
+      description: Search text for track title, album, or artist.
+      required: false
+      selector:
+        text:
+    search_type:
+      name: Search Type
+      description: Type of music items to search for (all, track, album, artist).
+      required: false
+      default: all
+      selector:
+        select:
+          options:
+            - label: All (Tracks, Albums, Artists)
+              value: all
+            - label: Tracks (Songs)
+              value: track
+            - label: Albums
+              value: album
+            - label: Artists
+              value: artist
+    artist:
+      name: Artist
+      description: Filter by artist name.
+      required: false
+      selector:
+        text:
+    album:
+      name: Album
+      description: Filter by album title.
+      required: false
+      selector:
+        text:
+    genre:
+      name: Genre
+      description: Filter by music genre (e.g. Rock, Classical, Jazz).
+      required: false
+      selector:
+        text:
+    year:
+      name: Year
+      description: Filter by release year.
+      required: false
+      selector:
+        number:
+          min: 1900
+          max: 2035
+          mode: box
+    codec:
+      name: Audio Codec / Format
+      description: Filter specifically by audio codec (e.g. flac, alac, mp3, aac, opus, dsd, wav).
+      required: false
+      selector:
+        text:
+    is_hi_res:
+      name: Hi-Res Audio Only
+      description: Filter for high-resolution audio (24-bit+ or >48kHz or DSD).
+      required: false
+      selector:
+        boolean:
+    is_lossless:
+      name: Lossless Audio Only
+      description: Filter for lossless audio formats (FLAC, ALAC, WAV, DSD).
+      required: false
+      selector:
+        boolean:
+    is_favorite:
+      name: Is Favorite
+      description: Filter by favorite status.
+      required: false
+      selector:
+        boolean:
+    sort_by:
+      name: Sort By
+      description: Field to sort results by (default Title / Name for fast indexing).
+      required: false
+      default: SortName
+      selector:
+        select:
+          options:
+            - label: Title / Name (Default)
+              value: SortName
+            - label: Artist
+              value: AlbumArtist
+            - label: Album
+              value: Album
+            - label: Date Added
+              value: DateCreated
+            - label: Release Date
+              value: PremiereDate
+            - label: Play Count
+              value: PlayCount
+            - label: Random / Shuffle
+              value: Random
+    sort_order:
+      name: Sort Order
+      description: Order of sorted results (default Ascending).
+      required: false
+      default: Ascending
+      selector:
+        select:
+          options:
+            - label: Ascending
+              value: Ascending
+            - label: Descending
+              value: Descending
+    limit:
+      name: Limit
+      description: Maximum number of results to return (default 20).
+      required: false
+      default: 20
+      selector:
+        number:
+          min: 1
+          max: 100
+          mode: box
+    offset:
+      name: Offset
+      description: Number of initial results to skip for pagination.
+      required: false
+      default: 0
+      selector:
+        number:
+          min: 0
+          mode: box
+    config_entry_id:
+      name: JellyHA Instance
+      description: The JellyHA instance to use (defaults to Music instance or first available).
+      required: false
+      selector:
+        config_entry:
+          integration: jellyha
+    server_entity_id:
+      name: JellyHA Server Entity
+      description: The JellyHA entity to target (optional, alternative to config_entry_id).
+      required: false
+      selector:
+        entity:
+          integration: jellyha
+
+play_music:
+  name: Play Music
+  description: Search and play a music track or album from Jellyfin on any Home Assistant media player (e.g. Kitchen Speaker, Sonos, Cast).
+  fields:
+    entity_id:
+      name: Media Player
+      description: Target Home Assistant media player entity to play the music on (e.g. media_player.kitchen_speaker).
+      required: true
+      selector:
+        entity:
+          domain: media_player
+    query:
+      name: Search Query / Song Title
+      description: Song or track name to search for (e.g. "It's a Beautiful Day").
+      required: false
+      selector:
+        text:
+    artist:
+      name: Artist
+      description: Artist name to search for (e.g. "U2").
+      required: false
+      selector:
+        text:
+    album:
+      name: Album
+      description: Album title to search for.
+      required: false
+      selector:
+        text:
+    search_type:
+      name: Search Type
+      description: Whether to search for a track or an entire album.
+      required: false
+      default: track
+      selector:
+        select:
+          options:
+            - label: Track / Song
+              value: track
+            - label: Album
+              value: album
+    genre:
+      name: Genre
+      description: Filter by music genre.
+      required: false
+      selector:
+        text:
+    year:
+      name: Year
+      description: Filter by release year.
+      required: false
+      selector:
+        number:
+          min: 1900
+          max: 2035
+          mode: box
+    codec:
+      name: Audio Codec / Format
+      description: Filter by audio codec (e.g. flac, alac, mp3).
+      required: false
+      selector:
+        text:
+    is_hi_res:
+      name: Hi-Res Audio Only
+      description: Play only if high-resolution audio (24-bit+ or >48kHz).
+      required: false
+      selector:
+        boolean:
+    is_lossless:
+      name: Lossless Audio Only
+      description: Play only if lossless audio (FLAC, ALAC, WAV).
+      required: false
+      selector:
+        boolean:
+    item_id:
+      name: Direct Item ID
+      description: Direct Jellyfin track or album item ID (bypasses search).
+      required: false
+      selector:
+        text:
+    config_entry_id:
+      name: JellyHA Instance
+      description: The JellyHA instance to use (defaults to Music instance or first available).
+      required: false
+      selector:
+        config_entry:
+          integration: jellyha
+    server_entity_id:
+      name: JellyHA Server Entity
+      description: The JellyHA entity to target (optional, alternative to config_entry_id).
+      required: false
+      selector:
+        entity:
+          integration: jellyha
+

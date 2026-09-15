@@ -277,13 +277,24 @@ class JellyfinApiClient:
         if item_types is None:
             item_types = [ITEM_TYPE_MOVIE, ITEM_TYPE_SERIES, ITEM_TYPE_VIDEO, ITEM_TYPE_MUSIC_VIDEO]
 
+        if not sort_by:
+            if item_types and any(t in ("Audio", "MusicAlbum", "MusicArtist") for t in item_types):
+                effective_sort_by = "SortName"
+                effective_sort_order = sort_order or "Ascending"
+            else:
+                effective_sort_by = "DateCreated"
+                effective_sort_order = sort_order or "Descending"
+        else:
+            effective_sort_by = sort_by
+            effective_sort_order = sort_order or "Descending"
+
         params = {
             "UserId": user_id,
-            "SortBy": sort_by or "DateCreated",
-            "SortOrder": sort_order or "Descending",
+            "SortBy": effective_sort_by,
+            "SortOrder": effective_sort_order,
             "Recursive": "true",
             "IncludeItemTypes": ",".join(item_types),
-            "Fields": "Genres,RunTimeTicks,DateCreated,CommunityRating,Overview,UserData,RemoteTrailers,AlbumArtist,Artists,ParentId,ParentIndexNumber,IndexNumber,SeriesName,SeriesId,SeasonName,SeasonId,SeriesPrimaryImageTag,BackdropImageTags,ParentBackdropImageTags,ParentBackdropItemId,MediaStreams,RecursiveItemCount,ChildCount",
+            "Fields": "Genres,RunTimeTicks,DateCreated,CommunityRating,Overview,UserData,RemoteTrailers,AlbumArtist,Artists,ParentId,ParentIndexNumber,IndexNumber,SeriesName,SeriesId,SeasonName,SeasonId,SeriesPrimaryImageTag,BackdropImageTags,ParentBackdropImageTags,ParentBackdropItemId,MediaStreams,MediaSources,Path,RecursiveItemCount,ChildCount",
             "CollapseBoxSetItems": "false",
         }
 
@@ -375,7 +386,7 @@ class JellyfinApiClient:
         """Get details for a single item."""
         params = {
             "UserId": user_id,
-            "Fields": "Chapters,DateCreated,Genres,MediaSources,MediaStreams,Overview,ParentId,Path,People,ProviderIds,PrimaryImageAspectRatio,RemoteTrailers,SortName,Studios,Taglines,TrailerUrls,UserData,SeasonUserData,OfficialRating,CommunityRating,CumulativeRunTimeTicks,RunTimeTicks,ProductionYear,PremiereDate,ExternalUrls"
+            "Fields": "Chapters,DateCreated,Genres,MediaSources,MediaStreams,Overview,ParentId,Path,People,ProviderIds,PrimaryImageAspectRatio,RemoteTrailers,SortName,Studios,Taglines,TrailerUrls,UserData,SeasonUserData,OfficialRating,CommunityRating,CumulativeRunTimeTicks,RunTimeTicks,ProductionYear,PremiereDate,ExternalUrls,Artists,AlbumArtist,ArtistItems,Container"
         }
         return await self._request("GET", f"/Items/{item_id}", params=params)
 
@@ -795,3 +806,124 @@ class JellyfinApiClient:
         except JellyfinApiError as err:
             _LOGGER.debug("Failed to fetch storage info: %s", err)
             return None
+
+    async def get_item_counts(self, user_id: str) -> dict[str, int]:
+        """Fetch item counts for a user from Jellyfin API."""
+        try:
+            counts = await self._request("GET", "/Items/Counts", params={"userId": user_id})
+            if not isinstance(counts, dict):
+                return {}
+            return {
+                "movies": counts.get("MovieCount", 0),
+                "series": counts.get("SeriesCount", 0),
+                "episodes": counts.get("EpisodeCount", 0),
+                "songs": counts.get("SongCount", 0),
+                "albums": counts.get("AlbumCount", 0),
+                "artists": counts.get("ArtistCount", 0),
+                "music_videos": counts.get("MusicVideoCount", 0),
+                "total": counts.get("ItemCount", 0),
+            }
+        except Exception as err:
+            _LOGGER.debug("Failed to fetch item counts: %s", err)
+            return {}
+
+    async def search_music(
+        self,
+        user_id: str,
+        query: str | None = None,
+        search_type: str | None = "all",
+        artist: str | None = None,
+        album: str | None = None,
+        genre: str | None = None,
+        year: int | None = None,
+        is_favorite: bool | None = None,
+        limit: int = 20,
+        offset: int = 0,
+        sort_by: str | None = None,
+        sort_order: str | None = None,
+        library_ids: list[str] | None = None,
+    ) -> list[dict[str, Any]]:
+        """High-performance music search querying Jellyfin indexed tables."""
+        effective_sort_by = sort_by or "SortName"
+        effective_sort_order = sort_order or "Ascending"
+        effective_type = (search_type or "all").lower()
+
+        # Route to dedicated artist endpoint if artist search is requested
+        if effective_type in ("artist", "musicartist"):
+            params: dict[str, Any] = {
+                "SortBy": effective_sort_by,
+                "SortOrder": effective_sort_order,
+                "Recursive": "true",
+                "Fields": "PrimaryImageAspectRatio,Genres,Overview",
+                "Limit": str(limit),
+            }
+            if offset > 0:
+                params["StartIndex"] = str(offset)
+            search_query = query or artist
+            if search_query:
+                params["searchTerm"] = search_query
+            if library_ids and len(library_ids) == 1:
+                params["ParentId"] = library_ids[0]
+            if is_favorite is not None:
+                params["IsFavorite"] = str(is_favorite).lower()
+
+            result = await self._request("GET", "/Artists/AlbumArtists", params=params)
+            return result.get("Items", []) if isinstance(result, dict) else []
+
+        # Determine item types for /Items endpoint
+        if effective_type in ("album", "musicalbum"):
+            item_types = ["MusicAlbum"]
+        elif effective_type in ("track", "song", "audio"):
+            item_types = ["Audio"]
+        else:
+            item_types = ["Audio", "MusicAlbum", "MusicArtist"]
+
+        params = {
+            "UserId": user_id,
+            "SortBy": effective_sort_by,
+            "SortOrder": effective_sort_order,
+            "Recursive": "true",
+            "IncludeItemTypes": ",".join(item_types),
+            "Fields": "Genres,RunTimeTicks,DateCreated,CommunityRating,Overview,UserData,AlbumArtist,Artists,Album,ParentId,ParentIndexNumber,IndexNumber,MediaStreams,MediaSources,Path",
+            "CollapseBoxSetItems": "false",
+            "Limit": str(limit),
+        }
+
+        if offset > 0:
+            params["StartIndex"] = str(offset)
+        if query:
+            params["SearchTerm"] = query
+        if artist:
+            params["Artists"] = artist
+        if album:
+            params["Album"] = album
+        if genre:
+            params["Genres"] = genre
+        if year:
+            params["Years"] = str(year)
+        if is_favorite is not None:
+            params["IsFavorite"] = str(is_favorite).lower()
+
+        if library_ids:
+            if len(library_ids) == 1:
+                params["ParentId"] = library_ids[0]
+                res = await self._request("GET", "/Items", params=params)
+                return res.get("Items", []) if isinstance(res, dict) else []
+            else:
+                all_items: list[dict[str, Any]] = []
+                seen_ids: set[str] = set()
+                for lib_id in library_ids:
+                    lib_params = {**params, "ParentId": lib_id}
+                    res = await self._request("GET", "/Items", params=lib_params)
+                    items_for_lib = res.get("Items", []) if isinstance(res, dict) else []
+                    for item in items_for_lib:
+                        iid = item.get("Id")
+                        if iid and iid not in seen_ids:
+                            seen_ids.add(iid)
+                            all_items.append(item)
+                    if len(all_items) >= limit:
+                        break
+                return all_items[:limit]
+
+        result = await self._request("GET", "/Items", params=params)
+        return result.get("Items", []) if isinstance(result, dict) else []

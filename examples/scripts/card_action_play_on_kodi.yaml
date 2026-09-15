@@ -27,7 +27,13 @@
 #      - Syncs the Jellyfin library into Kodi's native database.
 #      - Plugin path: plugin://plugin.video.jellyfin/?mode=play&id={id}
 #
-# 3. Update the `kodi_player` default and the plugin URL below to match your setup.
+#    Option C — Direct File Path / Local / Network Share (Issue #37):
+#      - Does NOT require any Jellyfin add-on installed in Kodi.
+#      - Directly plays the server file path on Kodi via Player.Open.
+#      - Ideal if Kodi has direct access to local disks, NFS mounts, or SMB shares.
+#      - Uses the `path` or `filepath` variable injected automatically by the card.
+#
+# 3. Update the `kodi_player` default and `playback_mode` below to match your setup.
 #
 # Card Configuration (Lovelace YAML):
 # -----------------------------------
@@ -50,6 +56,7 @@
 #   - episode: Episode number (e.g. 4)
 #   - year: Release year (e.g. 2025)
 #   - item_id: Jellyfin GUID
+#   - path / filepath: Absolute media file path on disk (e.g. "/media/movies/Inception.mkv", Issue #37)
 #   - poster_url: Authenticated proxy poster image URL
 #   - series_poster_url: Parent series poster cover URL (episodes)
 #   - backdrop_url: Fanart background image URL
@@ -119,41 +126,59 @@ fields:
       number:
         min: 1900
         max: 2050
+  path:
+    name: Media File Path
+    description: Absolute server disk path to the media file (injected by JellyHA #37)
+    required: false
+    example: "/media/movies/Inception (2010)/Inception (2010).mkv"
+    selector:
+      text:
+  filepath:
+    name: Media Filepath
+    description: Alternative alias for media file path on disk (injected by JellyHA #37)
+    required: false
+    example: "/media/movies/Inception (2010)/Inception (2010).mkv"
+    selector:
+      text:
 
 sequence:
-  # Determine target Kodi player entity.
+  # Determine target Kodi player entity and playback method.
   # Change 'media_player.kodi' to match your Kodi entity ID.
   - variables:
       kodi_player: "media_player.kodi"
+      # Playback mode options:
+      #   - "jellycon"    : (Recommended default) streams via JellyCon add-on on demand.
+      #   - "direct_path" : (Issue #37) plays file directly using server disk path / SMB / NFS.
+      #   - "jellyfin"    : streams via official "Jellyfin for Kodi" sync add-on.
+      playback_mode: "jellycon"
 
   - choose:
       # ------------------------------------------------------------------------
-      # Case A: Item ID provided (triggered by JellyHA Library Card click)
+      # Case A: Item ID or Filepath provided (triggered by JellyHA Library Card)
       # ------------------------------------------------------------------------
       - conditions:
           - condition: template
-            value_template: "{{ item_id is defined and item_id not in [none, '', 'None'] }}"
+            value_template: >-
+              {{ (item_id is defined and item_id not in [none, '', 'None']) or
+                 (filepath is defined and filepath not in [none, '', 'None']) or
+                 (path is defined and path not in [none, '', 'None']) }}
         sequence:
           # Log to Home Assistant Logbook for diagnostics
           - action: logbook.log
             data:
               name: "JellyHA Kodi Player"
               message: >-
-                Playing {{ media_type | default('Media') }}: {{ title | default(item_id) }}
-                {% if year %}({{ year }}){% endif %} on {{ kodi_player }}
+                Playing {{ media_type | default('Media') }}: {{ title | default(item_id | default(filepath | default(path))) }}
+                {% if year %}({{ year }}){% endif %} on {{ kodi_player }} [mode: {{ playback_mode }}]
               domain: media_player
               entity_id: "{{ kodi_player }}"
 
           - choose:
               # ------------------------------------------------------------------
-              # Option A: JellyCon add-on (plugin.video.jellycon)
-              #   - Recommended: streams directly on demand, no sync required.
-              #   - URL format confirmed: item_id first, then mode=PLAY.
+              # Kodi playback execution (JellyCon, direct file path, or Jellyfin add-on)
               # ------------------------------------------------------------------
               - conditions:
                   - condition: template
-                    # Kodi is reachable and JellyCon add-on is installed.
-                    # Change to 'plugin.video.jellyfin' if using Jellyfin for Kodi.
                     value_template: >-
                       {{ states(kodi_player) not in ['unavailable', 'unknown', 'off'] }}
                 sequence:
@@ -163,10 +188,18 @@ sequence:
                     data:
                       method: Player.Open
                       item:
-                        # JellyCon URL: item_id parameter MUST come before mode=PLAY
-                        file: "plugin://plugin.video.jellycon/?item_id={{ item_id }}&mode=PLAY"
-                        # If using "Jellyfin for Kodi" instead, replace the line above with:
-                        # file: "plugin://plugin.video.jellyfin/?mode=play&id={{ item_id }}"
+                        file: >-
+                          {% if playback_mode == 'direct_path' and (filepath is defined or path is defined) %}
+                            {# Direct file path or network share from Issue #37 #}
+                            {# Optional path mapping if Kodi mount differs: {{ (filepath | default(path)) | replace('/media/', 'smb://nas/media/') }} #}
+                            {{ filepath | default(path) }}
+                          {% elif playback_mode == 'jellyfin' %}
+                            {# Jellyfin for Kodi sync add-on #}
+                            plugin://plugin.video.jellyfin/?mode=play&id={{ item_id }}
+                          {% else %}
+                            {# JellyCon streaming add-on (item_id before mode=PLAY) #}
+                            plugin://plugin.video.jellycon/?item_id={{ item_id }}&mode=PLAY
+                          {% endif %}
 
               # ------------------------------------------------------------------
               # Fallback: Kodi unavailable — log a warning

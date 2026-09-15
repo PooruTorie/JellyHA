@@ -179,7 +179,16 @@ class JellyHALibrarySensor(JellyHABaseSensor):
     def native_value(self) -> int:
         """Return the number of library items."""
         if self.coordinator.data:
-            return self.coordinator.data.get("count", 0)
+            count = self.coordinator.data.get("count", 0)
+            if count > 0:
+                return count
+            # Fallback for music-only library instances
+            counts = self.coordinator.data.get("item_counts", {}) or getattr(self.coordinator, "item_counts", {})
+            if counts:
+                songs = counts.get("songs", 0)
+                if songs > 0:
+                    return songs
+            return count
         return 0
 
     @property
@@ -197,6 +206,8 @@ class JellyHALibrarySensor(JellyHABaseSensor):
             (i.get("total_episodes") or 0) for i in series
         )
 
+        counts = self.coordinator.data.get("item_counts", {}) or getattr(self.coordinator, "item_counts", {})
+
         return {
             "entry_id": self._entry.entry_id,
             "config_entry_id": self._entry.entry_id,
@@ -206,6 +217,9 @@ class JellyHALibrarySensor(JellyHABaseSensor):
             "series": len(series),
             "videos": len(videos),
             "episodes": total_episodes,
+            "songs": counts.get("songs", 0),
+            "albums": counts.get("albums", 0),
+            "artists": counts.get("artists", 0),
             "config_external_url": self._entry.options.get(
                 "external_url", self._entry.data.get("external_url", "")
             ),

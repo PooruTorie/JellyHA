@@ -84,6 +84,7 @@ class JellyHALibraryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._previous_item_hash: str = ""
         self._favorite_series_ids: set[str] = set()
         self._live_tv_channels: list[dict[str, Any]] = []
+        self.item_counts: dict[str, int] = {}
         # Cache signed URLs by (item_id, image_type, tag) -> (url, monotonic timestamp)
         self._url_cache: dict[tuple[str, str, str], tuple[str, float]] = {}
 
@@ -231,6 +232,13 @@ class JellyHALibraryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             except Exception as err:
                 _LOGGER.debug("Failed to fetch storage info: %s", err)
 
+            # Fetch item counts (fast metadata summary for songs, albums, artists, etc.)
+            try:
+                self.item_counts = await self._api.get_item_counts(user_id)
+            except Exception as err:
+                _LOGGER.debug("Failed to fetch item counts: %s", err)
+                self.item_counts = {}
+
             if self.entry.options.get(CONF_ENABLE_LIVE_TV, self.entry.data.get(CONF_ENABLE_LIVE_TV, False)):
                 try:
                     self._live_tv_channels = await self._api.get_live_tv_channels()
@@ -296,6 +304,7 @@ class JellyHALibraryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "latest_episode": latest_episode,
                 "storage": storage_info,
                 "live_tv_channels": self._live_tv_channels,
+                "item_counts": self.item_counts,
             }
 
         except JellyfinAuthError as err:
@@ -419,6 +428,7 @@ class JellyHALibraryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             album = item.get("Album")
 
         video_attrs = MediaStrategy.extract_video_stream_attributes(item)
+        audio_attrs = MediaStrategy.extract_audio_stream_attributes(item)
 
         is_fav = item.get("UserData", {}).get("IsFavorite", False)
         if not is_fav and item_type == "Episode":
@@ -432,6 +442,17 @@ class JellyHALibraryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 year = int(item["PremiereDate"][:4])
             except (ValueError, TypeError):
                 pass
+
+        # Extract media file path
+        path = item.get("Path")
+        if not path and item.get("MediaSources"):
+            path = item["MediaSources"][0].get("Path")
+
+        stream_url = None
+        if self._api and item_id and item_type in ("Audio", "MusicAlbum", "MusicArtist"):
+            stream_url = f"{self._api._server_url}/Audio/{item_id}/stream?static=true&api_key={self._api._api_key}&ApiKey={self._api._api_key}"
+
+        duration_seconds = int(runtime_ticks / TICKS_PER_SECOND) if runtime_ticks else None
 
         return {
             "id": item_id,
@@ -454,6 +475,8 @@ class JellyHALibraryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "is_favorite": is_fav,
             "date_added": item.get("DateCreated"),
             "date_created": item.get("DateCreated"),
+            "path": path,
+            "filepath": path,
 
             "official_rating": item.get("OfficialRating"),
             "trailer_url": next((t["Url"] for t in item.get("RemoteTrailers", []) if t.get("Url")), None),
@@ -478,10 +501,25 @@ class JellyHALibraryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "aspect_ratio": video_attrs.get("aspect_ratio"),
             "resolution": video_attrs.get("resolution"),
             "media_streams": media_streams,
-            # Music-specific fields (None for non-music items)
+            # Music-specific fields
             "artist_name": artist_name,
             "album_artist": album_artist,
             "album": album,
+            "album_id": item.get("AlbumId") or (item.get("ParentId") if item_type == "Audio" else None),
+            "track_number": item.get("IndexNumber") if item_type == "Audio" else None,
+            "disc_number": item.get("ParentIndexNumber") if item_type == "Audio" else None,
+            "duration_seconds": duration_seconds,
+            "stream_url": stream_url,
+            "audio_codec": audio_attrs["audio_codec"],
+            "audio_container": audio_attrs["audio_container"],
+            "audio_bit_depth": audio_attrs["bit_depth"],
+            "audio_sample_rate": audio_attrs["sample_rate"],
+            "audio_channels": audio_attrs["channels"],
+            "audio_channel_layout": audio_attrs["channel_layout"],
+            "audio_bit_rate": audio_attrs["bit_rate"],
+            "is_lossless": audio_attrs["is_lossless"],
+            "is_hi_res": audio_attrs["is_hi_res"],
+            "audio_quality_label": audio_attrs["audio_quality_label"],
         }
 
 

@@ -73,6 +73,12 @@ export class JellyHALibraryEditor extends LitElement {
 
     const lang = this.hass.locale?.language || this.hass.language;
 
+    // Determine label for columns/rows slider
+    const isHorizontalGrid = this._config.layout === 'grid' &&
+      this._config.enable_pagination === false &&
+      (this._config.auto_swipe_interval || 0) > 0;
+    const columnsLabel = isHorizontalGrid ? localize(lang, 'editor.rows') : localize(lang, 'editor.columns');
+
     return html`
       <div class="card-config">
         <div class="form-row">

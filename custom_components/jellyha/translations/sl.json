@@ -395,6 +395,74 @@
                     "description": "Ime kanala v Jellyfinu."
                 }
             }
+        },
+        "music_search": {
+            "name": "Iskanje glasbe",
+            "description": "Iskanje skladb, albumov ali izvajalcev v glasbeni knjižnici Jellyfin s specifikacijami FLAC in Hi-Res.",
+            "fields": {
+                "query": {
+                    "name": "Iskalni niz",
+                    "description": "Besedilo za iskanje naslova skladbe, albuma ali izvajalca."
+                },
+                "search_type": {
+                    "name": "Vrsta iskanja",
+                    "description": "Vrsta elementov (vse, skladba, album, izvajalec)."
+                },
+                "artist": {
+                    "name": "Izvajalec",
+                    "description": "Filtriraj po imenu izvajalca."
+                },
+                "album": {
+                    "name": "Album",
+                    "description": "Filtriraj po naslovu albuma."
+                },
+                "genre": {
+                    "name": "Zvrst",
+                    "description": "Filtriraj po glasbeni zvrsti."
+                },
+                "year": {
+                    "name": "Leto",
+                    "description": "Filtriraj po letu izdaje."
+                },
+                "codec": {
+                    "name": "Zvočni kodek / format",
+                    "description": "Filtriraj po zvočnem kodeku (npr. flac, alac, mp3, aac, opus, dsd, wav)."
+                },
+                "is_hi_res": {
+                    "name": "Samo zvok visoke ločljivosti (Hi-Res)",
+                    "description": "Filtriraj za zvok visoke ločljivosti (24-bit+ ali >48kHz ali DSD)."
+                },
+                "is_lossless": {
+                    "name": "Samo zvok brez izgub (Lossless)",
+                    "description": "Filtriraj za zvočne formate brez izgub (FLAC, ALAC, WAV, DSD)."
+                },
+                "limit": {
+                    "name": "Omejitev",
+                    "description": "Največje število vrnjenih rezultatov."
+                }
+            }
+        },
+        "play_music": {
+            "name": "Predvajaj glasbo",
+            "description": "Poišči in predvajaj glasbeno skladbo ali album iz Jellyfina na katerem koli predvajalniku Home Assistant.",
+            "fields": {
+                "entity_id": {
+                    "name": "Predvajalnik",
+                    "description": "Ciljni predvajalnik Home Assistant za predvajanje glasbe."
+                },
+                "query": {
+                    "name": "Iskalni niz / naslov skladbe",
+                    "description": "Naslov skladbe ali iskalno besedilo."
+                },
+                "artist": {
+                    "name": "Izvajalec",
+                    "description": "Ime izvajalca."
+                },
+                "album": {
+                    "name": "Album",
+                    "description": "Naslov albuma."
+                }
+            }
         }
     }
 }

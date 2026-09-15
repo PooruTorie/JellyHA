@@ -17,6 +17,8 @@ JellyHA exposes custom Home Assistant actions/services under the `jellyha` domai
 | `jellyha.session_play` | Instruct an active Jellyfin client session or device player to play a media item (Movie, Episode, Song). Auto-resolves TV shows to the next unplayed episode. | `item_id` (Req), `entity_id` / `device_name` / `session_id` / `device_id` / `client` (Opt), `play_command` (`PlayNow`/`PlayNext`/`PlayLast`, Opt), `start_position_ticks` (Opt), `config_entry_id` (Opt) |
 | `jellyha.get_live_tv_channels` | Retrieve available Live TV channels, including number, display name, and normalized name with optional query search and pagination limit. Results are returned through `response_variable`. | `query` (Opt), `limit` (Opt), `config_entry_id` / `entity_id` / `server_entity_id` (Opt) |
 | `jellyha.play_live_tv_channel` | Resolve a Live TV channel by exact channel number or normalized name, then play its Jellyfin channel item on an active session. | `channel_number` or `channel_name` (one Req), `entity_id` / `session_id` / `device_name` / `device_id` / `client` (Opt), `server_entity_id` / `config_entry_id` (Opt) |
+| `jellyha.music_search` | High-performance search for tracks, albums, or artists with FLAC, ALAC, and Hi-Res audio specifications returned into `response_variable`. | `query`, `search_type`, `artist`, `album`, `genre`, `year`, `codec`, `is_hi_res`, `is_lossless`, `is_favorite`, `sort_by`, `sort_order`, `limit`, `offset` |
+| `jellyha.play_music` | Search and play music from Jellyfin directly on any Home Assistant media player (e.g. Kitchen Speaker, Sonos, Cast, Wiim). Ideal for voice commands and 1-tap automations. | `entity_id` (Req), `query` (Opt), `artist` (Opt), `album` (Opt), `search_type` (Opt), `codec` (Opt), `is_hi_res` (Opt), `is_lossless` (Opt), `item_id` (Opt) |
 | `jellyha.session_seek` | Seek an active playback session. Accepts `position_seconds` (seconds) or `position_ticks`. Use `0` to rewind. | `session_id` (Req), `position_seconds` (Opt), `position_ticks` (Opt), `config_entry_id` (Opt) |
 | `jellyha.session_general_command` | Send arbitrary commands to a Jellyfin playback session (e.g. `SetSubtitleStreamIndex`, `SetAudioStreamIndex`, `Mute`, `Unmute`, `SetVolume`, `DisplayMessage`). | `session_id` (Req), `command` (Req), `arguments` (Opt), `config_entry_id` (Opt) |
 | `jellyha.search` | Search and filter library media with advanced sorting and filtering, returning results into `response_variable`. | `query`, `media_type`, `sort_by`, `sort_order`, `parent_id`, `is_played`, `is_favorite`, `genre`, `year`, `min_rating`, `limit`, `config_entry_id` |
@@ -171,3 +173,78 @@ data:
   arguments:
     Index: 1
 ```
+
+### Retrieve Item Details & Filepath
+
+Retrieve comprehensive metadata and disk file path for an item (e.g. to launch in an external player or script):
+
+```yaml
+action: jellyha.get_item
+data:
+  item_id: "a7b2c1d8e4f5..."
+response_variable: movie_info
+
+# Downstream script access:
+# {{ movie_info.item.path }} or {{ movie_info.item.filepath }}
+```
+
+### Search Music (with FLAC / Hi-Res Specifications)
+
+Query the music library with indexed fast search and audio stream inspection:
+
+```yaml
+action: jellyha.music_search
+data:
+  query: "Beautiful Day"
+  artist: "U2"
+  codec: "flac"
+  is_hi_res: true
+  limit: 5
+response_variable: music_results
+
+# Returned item attributes:
+# {{ music_results.items[0].name }} -> "Beautiful Day"
+# {{ music_results.items[0].artist_name }} -> "U2"
+# {{ music_results.items[0].album }} -> "All That You Can't Leave Behind"
+# {{ music_results.items[0].audio_codec }} -> "flac"
+# {{ music_results.items[0].audio_bit_depth }} -> 24
+# {{ music_results.items[0].audio_sample_rate }} -> 96000
+# {{ music_results.items[0].audio_quality_label }} -> "24-bit / 96 kHz FLAC (Hi-Res Lossless)"
+# {{ music_results.items[0].stream_url }} -> Direct bit-perfect stream URL
+# {{ music_results.items[0].path }} -> Physical disk path on server
+```
+
+### Play Music on Any Media Player (Voice & Automation One-Shot)
+
+Play a song or album from Jellyfin directly on a speaker (`media_player.kitchen_speaker`, Sonos, Google Nest / Cast, Wiim, HomePod, etc.):
+
+```yaml
+action: jellyha.play_music
+data:
+  entity_id: media_player.kitchen_speaker
+  query: "It's a Beautiful Day"
+  artist: "U2"
+```
+
+### Home Assistant Voice / Assist Music Playback
+
+Easily trigger music playback on any room speaker with Home Assistant Voice Assist:
+
+```yaml
+alias: "Voice: Play Music on Speaker"
+description: "Plays requested track or artist on a speaker via voice command"
+mode: single
+trigger:
+  - trigger: conversation
+    command:
+      - "Play {track} by {artist} on {speaker}"
+      - "Play {track} on {speaker}"
+action:
+  - action: jellyha.play_music
+    data:
+      entity_id: "media_player.{{ speaker | lower | replace(' ', '_') }}"
+      query: "{{ trigger.slots.track }}"
+      artist: "{{ trigger.slots.artist | default('') }}"
+  - set_conversation_response: "Playing {{ trigger.slots.track }} on {{ trigger.slots.speaker }}."
+```
+

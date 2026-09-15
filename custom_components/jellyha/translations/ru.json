@@ -300,6 +300,74 @@
                     "description": "Название канала Jellyfin."
                 }
             }
+        },
+        "music_search": {
+            "name": "Поиск музыки",
+            "description": "Поиск треков, альбомов или исполнителей в медиатеке Jellyfin с параметрами FLAC и Hi-Res.",
+            "fields": {
+                "query": {
+                    "name": "Поисковый запрос",
+                    "description": "Текст поиска названия трека, альбома или исполнителя."
+                },
+                "search_type": {
+                    "name": "Тип поиска",
+                    "description": "Тип элементов (все, трек, альбом, исполнитель)."
+                },
+                "artist": {
+                    "name": "Исполнитель",
+                    "description": "Фильтр по имени исполнителя."
+                },
+                "album": {
+                    "name": "Альбом",
+                    "description": "Фильтр по названию альбома."
+                },
+                "genre": {
+                    "name": "Жанр",
+                    "description": "Фильтр по музыкальному жанру."
+                },
+                "year": {
+                    "name": "Год",
+                    "description": "Фильтр по году выпуска."
+                },
+                "codec": {
+                    "name": "Аудиокодек / формат",
+                    "description": "Фильтр по аудиокодеку (например, flac, alac, mp3, aac, opus, dsd, wav)."
+                },
+                "is_hi_res": {
+                    "name": "Только Hi-Res аудио",
+                    "description": "Фильтр аудио высокого разрешения (24-bit+ или >48kHz или DSD)."
+                },
+                "is_lossless": {
+                    "name": "Только Lossless аудио",
+                    "description": "Фильтр форматов без потерь (FLAC, ALAC, WAV, DSD)."
+                },
+                "limit": {
+                    "name": "Лимит",
+                    "description": "Максимальное количество результатов."
+                }
+            }
+        },
+        "play_music": {
+            "name": "Воспроизвести музыку",
+            "description": "Найти и воспроизвести трек или альбом из Jellyfin на любом медиаплеере Home Assistant.",
+            "fields": {
+                "entity_id": {
+                    "name": "Медиаплеер",
+                    "description": "Целевой медиаплеер Home Assistant для воспроизведения музыки."
+                },
+                "query": {
+                    "name": "Поисковый запрос / название трека",
+                    "description": "Название трека или поисковый текст."
+                },
+                "artist": {
+                    "name": "Исполнитель",
+                    "description": "Имя исполнителя."
+                },
+                "album": {
+                    "name": "Альбом",
+                    "description": "Название альбома."
+                }
+            }
         }
     }
 }

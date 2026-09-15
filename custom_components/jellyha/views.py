@@ -204,7 +204,9 @@ class JellyHAStreamView(HomeAssistantView):
                 if "Accept-Ranges" in resp.headers:
                     response.headers["Accept-Ranges"] = resp.headers["Accept-Ranges"]
                 if filename:
-                    response.headers["Content-Disposition"] = f'inline; filename="{filename}"'
+                    import urllib.parse
+                    display_filename = urllib.parse.unquote(filename)
+                    response.headers["Content-Disposition"] = f'inline; filename="{display_filename}"'
 
                 await response.prepare(request)
 

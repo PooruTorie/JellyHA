@@ -25,11 +25,15 @@ Jellyfin for Home Assistant
 ## Features
 
 - 🎬 Display movies and TV shows from your library
+- 📡 **Live TV Support**: Visual channel browsing in Media Browser, 1-tap tuning, and voice tuning by channel number or name (`jellyha.play_live_tv_channel`)
+- 🎵 **Dedicated Music & Hi-Res Audio**: 1-step music playback on any speaker (`jellyha.play_music`), indexed search (`jellyha.music_search`), and FLAC, ALAC & Hi-Res audio stream inspection
+- 📁 **Direct Media File Paths**: Expose server disk paths (`path`, `filepath`) for external player handoff (Kodi, VLC, MPV)
+- 📊 **Watched Percentage & Storage Sensors**: Long-Term Statistics (LTS) watched percentages and per-library storage breakdown meters
 - 📺 Cast media directly to Chromecast (Gen 1 supported)
 - ⏯️ Full playback control: Play, Pause, Stop, Seek, Next/Previous Track, Shuffle, Repeat
 - ⏳ Accurate playback tracking: Elapsed/remaining time, +30s/-10s skip controls
 - 🎮 Per-user media players with transport and volume controls
-- 📺 Dedicated per-device media players for client devices (Smart TVs, Android TV, Fire TV sticks) for room-specific automations
+- 📺 Dedicated per-device media players with custom Jellyfin nicknames and exact session tracking
 - 🌈 Real-time Dynamic Range detection: Reporting of `SDR`, `HDR10`, `HDR10+`, `Dolby Vision`, and `HLG` on media players for picture mode automations (e.g. ADB TV control)
 - ⏭️ "Next Up" support to resume TV shows
 - 🎨 Three layouts: Carousel, Grid, List
@@ -135,10 +139,12 @@ To adjust settings after initial configuration:
 
 ### Supported Library Types
 
-| Library Type | Background Sync | Search Service | Now Playing |
+| Library Type | Background Sync | Search Service | Now Playing & Playback |
 |---|---|---|---|
-| Movies | ✅ | ✅ | ✅ |
-| TV Shows | ✅ | ✅ | ✅ |
+| Movies | ✅ | ✅ (`jellyha.search`) | ✅ |
+| TV Shows | ✅ | ✅ (`jellyha.search`) | ✅ |
+| Music | ✅ (Count & Cache) | ✅ (`jellyha.music_search`) | ✅ (`jellyha.play_music`) |
+| Live TV | ✅ (Channels) | ✅ (`jellyha.get_live_tv_channels`) | ✅ (`jellyha.play_live_tv_channel`) |
 
 ## Dashboard Cards at a Glance
 
@@ -173,16 +179,38 @@ title: Now Playing
 show_background: true
 ```
 
+#### 🔄 Migrating from Legacy Now Playing Sensors to Media Players
+
+Starting in **JellyHA v1.3.0**, per-user `media_player.jellyha_<user>` entities are the primary, official entities for tracking and controlling user playback. Legacy `sensor.jellyha_now_playing_<user>` entities remain active for backward compatibility until **v2.0.0**.
+
+**Migrating existing cards requires changing only one line:**
+
+```diff
+type: custom:jellyha-now-playing-card
+-entity: sensor.jellyha_now_playing_marko
++entity: media_player.jellyha_marko
+title: Now Playing
+show_background: true
+```
+
+**Why this migration is 100% safe and non-breaking:**
+- **Exact Visual & Feature Parity**: `custom:jellyha-now-playing-card` provides identical styling, dynamic fanart backdrops, poster art, season/episode badges (`S01E05`), IMDB/TMDB ratings, elapsed/remaining runtime, live scrubbing, and tap-to-rewind.
+- **Identical State Values**: `media_player.jellyha_<user>` outputs the exact same state values (`playing`, `paused`, `idle`). Any dashboard conditional visibility rules (e.g. `state: playing` or `state_not: idle`) continue to work seamlessly without modifying your conditions.
+- **Direct Playback Controls**: `media_player.jellyha_<user>` enables native Home Assistant services (`media_player.media_play_pause`, `media_player.media_seek`, `media_player.media_stop`), physical client device tracking (`media_player.jellyha_<device_name>`), and voice commands via Home Assistant Assist.
+
 👉 **[See full Now Playing Card options in docs/cards.md](docs/cards.md)**
 
 ## Media Browser
 
-JellyHA integrates with Home Assistant's Media Browser:
+JellyHA integrates natively with Home Assistant's Media Browser:
 
 1. Open **Media** in the Home Assistant sidebar.
 2. Select **JellyHA**.
 3. Choose your server (if multiple are connected).
-4. Browse your collections and stream directly to your browser or Cast players.
+4. Browse your media with instant 1-tap playback to your browser or Cast players:
+   - 🎬 **Movies & TV Series**: Collections, unwatched items, and Next Up episodes.
+   - 📡 **Live TV Channels**: Authenticated channel logos, channel numbers, and live stream tuning.
+   - 🎵 **Music**: Artists, albums, and tracks with bit-perfect audio streaming.
 
 *(If "Media" is not visible in the sidebar, see [Media Browser Entry Not Visible in Sidebar](docs/troubleshooting.md#media-browser-entry-not-visible-in-sidebar).)*
 
@@ -196,7 +224,7 @@ Explore ready-to-use recipes in the dedicated **[Examples & Cookbook Library](ex
 - **[Play on Android TV / Wholphin (ADB)](examples/scripts/card_action_play_on_wholpin.yaml)**: Card click action to play directly on Wholphin via ADB without confirmation prompts.
 - **[Cast with Custom Subtitles](examples/scripts/card_action_cast_with_subtitles.yaml)**: Routes library card clicks to Chromecast with prioritized subtitle selection (e.g. `sl, en`) and automatic server-side transcode burn-in.
 - **[Play on Apple TV (Infuse)](examples/scripts/card_action_play_on_apple_tv.yaml)**: Routes library card clicks to Apple TV.
-- **[Play on Kodi (JellyCon)](examples/scripts/card_action_play_on_kodi.yaml)**: Routes library card clicks to Kodi.
+- **[Play on Kodi (JellyCon & Direct Path)](examples/scripts/card_action_play_on_kodi.yaml)**: Routes library card clicks to Kodi via JellyCon streaming or direct file path.
 - **[System & Library Monitoring Stack](examples/dashboards/system_monitoring_card.yaml)**: Lovelace dashboard with server health, storage percentage meters, and library breakdown.
 
 ## Troubleshooting

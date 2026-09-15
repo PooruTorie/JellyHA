@@ -326,6 +326,128 @@ class MediaStrategy:
         }
 
     @staticmethod
+    def extract_audio_stream_attributes(item: dict[str, Any] | None) -> dict[str, Any]:
+        """Extract audio codec, bit depth, sample rate, and hi-res quality info from a Jellyfin item."""
+        empty_attrs = {
+            "audio_codec": None,
+            "audio_container": None,
+            "bit_depth": None,
+            "sample_rate": None,
+            "channels": None,
+            "channel_layout": None,
+            "bit_rate": None,
+            "is_lossless": False,
+            "is_hi_res": False,
+            "audio_quality_label": None,
+        }
+
+        if not item:
+            return empty_attrs
+
+        streams = item.get("MediaStreams") or []
+        if not streams and "MediaSources" in item and item["MediaSources"]:
+            streams = item["MediaSources"][0].get("MediaStreams", [])
+
+        audio_stream = None
+        for s in streams:
+            if s.get("Type") == "Audio":
+                audio_stream = s
+                break
+
+        container = (item.get("Container") or "").lower() or None
+        codec = None
+        bit_depth = None
+        sample_rate = None
+        channels = None
+        channel_layout = None
+        bit_rate = None
+
+        if audio_stream:
+            codec = (audio_stream.get("Codec") or "").lower() or None
+            bit_depth = audio_stream.get("BitDepth")
+            sample_rate = audio_stream.get("SampleRate")
+            channels = audio_stream.get("Channels")
+            channel_layout = audio_stream.get("ChannelLayout")
+            bit_rate = audio_stream.get("BitRate")
+
+        if not codec and container:
+            codec = container
+
+        if channels and not channel_layout:
+            if channels == 1:
+                channel_layout = "mono"
+            elif channels == 2:
+                channel_layout = "stereo"
+            elif channels == 6:
+                channel_layout = "5.1"
+            elif channels == 8:
+                channel_layout = "7.1"
+            else:
+                channel_layout = f"{channels}ch"
+
+        # Lossless formats: FLAC, ALAC, WAV, DSD, DSF, DFF, AIFF, PCM, APE
+        lossless_codecs = {"flac", "alac", "wav", "dsd", "dsf", "dff", "aiff", "pcm", "ape"}
+        is_lossless = False
+        if audio_stream and audio_stream.get("IsLossless") is True:
+            is_lossless = True
+        elif (codec and codec in lossless_codecs) or (container and container in lossless_codecs):
+            is_lossless = True
+
+        # Hi-Res audio: bit_depth >= 24 or sample_rate > 48000 Hz or DSD formats
+        is_hi_res = False
+        if (codec and codec in ("dsd", "dsf", "dff")) or (container and container in ("dsd", "dsf", "dff")):
+            is_hi_res = True
+            is_lossless = True
+        elif bit_depth and int(bit_depth) >= 24:
+            is_hi_res = True
+        elif sample_rate and int(sample_rate) > 48000:
+            is_hi_res = True
+
+        # Human-readable audio quality label
+        label_parts = []
+        if bit_depth:
+            label_parts.append(f"{bit_depth}-bit")
+        if sample_rate:
+            khz = sample_rate / 1000 if sample_rate >= 1000 else sample_rate
+            label_parts.append(f"{khz:g} kHz")
+        if codec:
+            label_parts.append(codec.upper())
+
+        quality_suffix = ""
+        if is_hi_res:
+            quality_suffix = " (Hi-Res Lossless)"
+        elif is_lossless:
+            quality_suffix = " (Lossless)"
+        elif bit_rate and bit_rate > 0:
+            quality_suffix = f" ({int(bit_rate / 1000)} kbps)"
+
+        quality_label = " / ".join(label_parts[:2])
+        if quality_label and len(label_parts) > 2:
+            quality_label += f" {label_parts[2]}"
+        elif len(label_parts) == 1:
+            quality_label = label_parts[0]
+
+        if quality_label:
+            audio_quality_label = f"{quality_label}{quality_suffix}"
+        elif codec:
+            audio_quality_label = f"{codec.upper()}{quality_suffix}"
+        else:
+            audio_quality_label = None
+
+        return {
+            "audio_codec": codec,
+            "audio_container": container,
+            "bit_depth": bit_depth,
+            "sample_rate": sample_rate,
+            "channels": channels,
+            "channel_layout": channel_layout,
+            "bit_rate": bit_rate,
+            "is_lossless": is_lossless,
+            "is_hi_res": is_hi_res,
+            "audio_quality_label": audio_quality_label,
+        }
+
+    @staticmethod
     def discover_chromecast_model(
         hass: Any, entity_id: str, zc: Any = None
     ) -> tuple[str, bool]:
@@ -592,3 +714,40 @@ class MediaStrategy:
             result["subtitle_stream_index"] = sub_index
 
         return result
+
+    @staticmethod
+    def format_audio_title(artist: str | None, name: str | None) -> str:
+        """Format a clean display title as 'Artist - Song Title' stripping extensions and track prefixes."""
+        import re
+
+        clean_name = (name or "").strip()
+        # Strip common audio file extensions
+        clean_name = re.sub(
+            r"\.(mp3|flac|m4a|aac|ogg|oga|opus|wav|alac|dsf|dff|wma)$",
+            "",
+            clean_name,
+            flags=re.IGNORECASE,
+        ).strip()
+
+        clean_artist = (artist or "").strip()
+
+        if clean_artist:
+            # Check if name already starts with artist (e.g. "Queen - Bohemian Rhapsody")
+            pattern = rf"^{re.escape(clean_artist)}\s*[-–—:]\s*"
+            if re.match(pattern, clean_name, re.IGNORECASE):
+                title_part = re.sub(pattern, "", clean_name, flags=re.IGNORECASE).strip()
+                # Also strip any track number that might have followed the artist
+                title_part = re.sub(r"^\d+[\s._-]+", "", title_part).strip()
+                return f"{clean_artist} - {title_part}" if title_part else clean_name
+
+            # Strip leading track numbers from name (e.g. "01 - Bohemian Rhapsody", "1. Bohemian Rhapsody")
+            title_part = re.sub(r"^\d+[\s._-]+", "", clean_name).strip()
+            if not title_part:
+                title_part = clean_name
+
+            return f"{clean_artist} - {title_part}"
+
+        # If no artist provided, strip leading track numbers if present
+        title_part = re.sub(r"^\d+[\s._-]+", "", clean_name).strip()
+        return title_part or clean_name or "Unknown Track"
+

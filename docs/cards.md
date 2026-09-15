@@ -107,13 +107,14 @@ When the card triggers the script, it automatically passes the tapped media item
 | `{{ is_favorite }}` | boolean | Favorite status | `true`, `false` |
 | `{{ runtime_minutes }}` | number | Total runtime in minutes | `122` |
 | `{{ jellyfin_url }}` | string | Direct web URL to the item in Jellyfin | `"https://jf.domain/..."` |
+| `{{ path }}` / `{{ filepath }}` | string / null | Absolute media file path on server disk (Issue #37) | `"/media/movies/Inception (2010)/Inception.mkv"` |
 | `{{ config_entry_id }}` | string | JellyHA instance GUID | `"01KM6..."` |
 | `{{ action_type }}` | string | Interaction trigger | `"click"`, `"hold"`, `"double_tap"` |
 
 #### Ready-to-Use External Player Scripts:
 - **[Play on Android TV (Wholphin via ADB)](../examples/scripts/card_action_play_on_wholpin.yaml)**: Sends direct playback intent to Wholphin without user confirmation prompts.
 - **[Play on Apple TV (Infuse)](../examples/scripts/card_action_play_on_apple_tv.yaml)**: Direct playback handoff to Apple TV.
-- **[Play on Kodi (JellyCon)](../examples/scripts/card_action_play_on_kodi.yaml)**: Direct playback handoff to Kodi.
+- **[Play on Kodi (JellyCon & Direct Path)](../examples/scripts/card_action_play_on_kodi.yaml)**: Direct playback handoff to Kodi via JellyCon streaming or direct file path.
 
 ---
 
@@ -150,5 +151,35 @@ show_background: true
 | `show_runtime` | boolean | `true` | Display total runtime |
 | `show_year` | boolean | `true` | Display release year |
 | `use_series_image` | boolean | `false` | Display series poster cover instead of episode screenshot thumbnail |
+
+### Migrating from Legacy Now Playing Sensors (`sensor.jellyha_now_playing_*`)
+
+Starting in **v1.3.0**, `sensor.jellyha_now_playing_<user>` is deprecated in favor of `media_player.jellyha_<user>` and scheduled for removal in **v2.0.0**.
+
+**You do NOT need to replace `custom:jellyha-now-playing-card` or switch to third-party cards.** The card natively supports `media_player` entities with 100% visual and functional parity.
+
+#### Card Migration Example
+Simply update the `entity` field in your card YAML:
+
+```diff
+type: custom:jellyha-now-playing-card
+-entity: sensor.jellyha_now_playing_marko
++entity: media_player.jellyha_marko
+title: Now Playing
+show_background: true
+```
+
+#### Dashboard Visibility Conditions
+If you have conditional cards or badges that show/hide based on playback state:
+```yaml
+type: conditional
+conditions:
+  - entity: media_player.jellyha_marko
+    state: playing
+card:
+  type: custom:jellyha-now-playing-card
+  entity: media_player.jellyha_marko
+```
+Because `media_player.jellyha_<user>` outputs the exact same state strings (`playing`, `paused`, `idle`), your existing conditional visibility rules require **no logic changes**.
 
 For curated dashboard designs, see the **[Lovelace Dashboard Examples](../examples/dashboards/)**.

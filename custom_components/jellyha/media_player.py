@@ -117,7 +117,11 @@ class JellyHAMediaPlayer(CoordinatorEntity[JellyHALibraryCoordinator], MediaPlay
     def media_title(self) -> str | None:
         """Return current media title."""
         if self._current_item:
-            return self._current_item.get("name")
+            name = self._current_item.get("name")
+            if self._current_item.get("type") == "Audio" and name:
+                artist = self._current_item.get("artist") or self._current_item.get("artist_name")
+                return MediaStrategy.format_audio_title(artist, name)
+            return name
         return None
 
     @property
@@ -381,7 +385,13 @@ class JellyHABasePlaybackMediaPlayer(
         if not session or "NowPlayingItem" not in session:
             return None
         item = session.get("NowPlayingItem", {})
-        return item.get("Name")
+        name = item.get("Name")
+        if item.get("Type") == "Audio" and name:
+            album_artist = item.get("AlbumArtist")
+            artists = item.get("Artists", [])
+            artist = album_artist or (artists[0] if artists else None)
+            return MediaStrategy.format_audio_title(artist, name)
+        return name
 
     @property
     def media_artist(self) -> str | None:
@@ -586,7 +596,7 @@ class JellyHABasePlaybackMediaPlayer(
 
         attrs["item_id"] = item_id
         attrs["media_type"] = item_type
-        attrs["title"] = item.get("Name")
+        attrs["title"] = self.media_title or item.get("Name")
 
         # Video stream and dynamic range attributes (SDR, HDR10, Dolby Vision, HLG)
         if item_type in ("Movie", "Episode", "Video", "MusicVideo"):

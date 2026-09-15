@@ -264,7 +264,7 @@ L.elementStyles = [], L.shadowRootOptions = { mode: "open" }, L[J("elementProper
  */
 const fe = globalThis, ze = (e) => e, re = fe.trustedTypes, Ie = re ? re.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, Fe = "$lit$", z = `lit$${Math.random().toFixed(9).slice(2)}$`, Be = "?" + z, nt = `<${Be}>`, U = document, Y = () => U.createComment(""), q = (e) => e === null || typeof e != "object" && typeof e != "function", be = Array.isArray, lt = (e) => be(e) || typeof e?.[Symbol.iterator] == "function", he = `[ 	
 \f\r]`, B = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, De = /-->/g, Ue = />/g, I = RegExp(`>|${he}(?:([^\\s"'>=/]+)(${he}*=${he}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), Le = /'/g, Ne = /"/g, We = /^(?:script|style|textarea|title)$/i, dt = (e) => (t, ...i) => ({ _$litType$: e, strings: t, values: i }), n = dt(1), N = Symbol.for("lit-noChange"), d = Symbol.for("lit-nothing"), Re = /* @__PURE__ */ new WeakMap(), D = U.createTreeWalker(U, 129);
+\f\r"'\`<>=]|("|')|))|$)`, "g"), Le = /'/g, Ne = /"/g, We = /^(?:script|style|textarea|title)$/i, dt = (e) => (t, ...i) => ({ _$litType$: e, strings: t, values: i }), l = dt(1), N = Symbol.for("lit-noChange"), d = Symbol.for("lit-nothing"), Re = /* @__PURE__ */ new WeakMap(), D = U.createTreeWalker(U, 129);
 function Je(e, t) {
   if (!be(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return Ie !== void 0 ? Ie.createHTML(t) : t;
@@ -2759,10 +2759,10 @@ const Ye = K`
     "search.all_genres": "Все жанры"
   }
 };
-function l(e, t, i) {
-  if (!t) return i || "";
+function n(e, t, i) {
+  if (!t) return "";
   const a = (e || "en").split("-")[0].toLowerCase();
-  return ae[a]?.[t] ? ae[a][t] : ae.en?.[t] ? ae.en[t] : i !== void 0 ? i : "";
+  return ae[a]?.[t] ? ae[a][t] : ae.en?.[t] ? ae.en[t] : "";
 }
 var xt = Object.defineProperty, $t = Object.getOwnPropertyDescriptor, x = (e, t, i, a) => {
   for (var o = a > 1 ? void 0 : a ? $t(t, i) : t, s = e.length - 1, r; s >= 0; s--)
@@ -3010,10 +3010,10 @@ let y = class extends T {
     }
   }
   render() {
-    return n``;
+    return l``;
   }
   _getPortalStyles() {
-    return n`
+    return l`
         <style>
             .jellyha-modal-scrim {
                 position: fixed;
@@ -3771,7 +3771,7 @@ let y = class extends T {
         `;
   }
   _renderDialogContent() {
-    return !this._open || !this._item ? n`` : n`
+    return !this._open || !this._item ? l`` : l`
             ${this._getPortalStyles()}
             <div class="jellyha-modal-scrim" @click=${this.closeDialog}>
                 <div 
@@ -3784,7 +3784,7 @@ let y = class extends T {
                     </button>
                     ${(() => {
       const e = this._item.backdrop_url || (this._item.type === "Episode" ? this._item.series_poster_url || this._item.poster_url : this._item.poster_url);
-      return e ? n`
+      return e ? l`
                             <div class="backdrop-hero">
                                 <img class="backdrop-img" src="${e}" alt="" />
                             </div>
@@ -3796,21 +3796,21 @@ let y = class extends T {
         `;
   }
   _renderDefaultContent() {
-    if (!this._item) return n``;
+    if (!this._item) return l``;
     const e = this._item, t = e.type === "Series", i = e.year || (e.date_added ? new Date(e.date_added).getFullYear() : "");
-    return n`
+    return l`
         <div class="default-layout">
             <div class="poster-col">
                 <img class="poster-img" src="${e.poster_url}" alt="${e.name}" />
 
                 <div class="poster-actions">
-                    ${this._confirmDelete ? n`
+                    ${this._confirmDelete ? l`
                             <div class="confirmation-box">
                                 <span>Delete item?</span>
                                 <button class="confirm-btn confirm-yes" @click=${this._handleDeleteConfirm}>Yes</button>
                                 <button class="confirm-btn" @click=${() => this._confirmDelete = !1}>No</button>
                             </div>
-                        ` : n`
+                        ` : l`
                             <!-- Primary Play / Cast Button -->
                             <button class="primary-play-btn" @click=${this._handlePlay} title="Play on Chromecast">
                                 <ha-icon icon="mdi:cast"></ha-icon>
@@ -3819,7 +3819,7 @@ let y = class extends T {
 
                             <!-- Secondary Action Icons Toolbar -->
                             <div class="actions-icon-row">
-                                ${t ? n`
+                                ${t ? l`
                                     <button class="action-btn" @click=${(a) => {
       this._haptic(), this._toggleEpisodesView(a);
     }} title="View All Episodes" type="button">
@@ -3827,7 +3827,7 @@ let y = class extends T {
                                     </button>
                                 ` : d}
 
-                                ${e.trailer_url ? n`
+                                ${e.trailer_url ? l`
                                     <button class="action-btn" @click=${this._handleWatchTrailer} title="Watch Trailer">
                                         <ha-icon icon="mdi:filmstrip"></ha-icon>
                                     </button>
@@ -3861,15 +3861,15 @@ let y = class extends T {
                 <div class="header-group">
                     <h1>${e.name}</h1>
                     <div class="header-sub">
-                        ${e.series_name ? n`<span>${e.series_name}</span>` : d}
-                        ${e.type === "Episode" && e.season != null && e.episode != null ? n`<span class="badge">S${String(e.season).padStart(2, "0")}E${String(e.episode).padStart(2, "0")}</span>` : d}
-                        ${i ? n`<span>${i}</span>` : d}
+                        ${e.series_name ? l`<span>${e.series_name}</span>` : d}
+                        ${e.type === "Episode" && e.season != null && e.episode != null ? l`<span class="badge">S${String(e.season).padStart(2, "0")}E${String(e.episode).padStart(2, "0")}</span>` : d}
+                        ${i ? l`<span>${i}</span>` : d}
                         <span class="badge">${e.type}</span>
-                        ${e.official_rating ? n`<span class="badge">${e.official_rating}</span>` : d}
+                        ${e.official_rating ? l`<span class="badge">${e.official_rating}</span>` : d}
                     </div>
                 </div>
                 
-                ${this._nextUpItem ? n`
+                ${this._nextUpItem ? l`
                     <div class="next-up-card" @click=${this._playNextUp}>
                         <div class="next-up-thumb-wrap">
                             <img class="next-up-thumb" src="${this._nextUpItem.poster_url || this._nextUpItem.backdrop_url || this._item.poster_url}" alt="${this._nextUpItem.name}" />
@@ -3880,14 +3880,14 @@ let y = class extends T {
                         <div class="next-up-info">
                             <div class="next-up-header-row">
                                 <span class="next-up-badge">NEXT UP</span>
-                                ${this._nextUpItem.season != null && this._nextUpItem.episode != null ? n`
+                                ${this._nextUpItem.season != null && this._nextUpItem.episode != null ? l`
                                     <span class="next-up-ep-code">S${this._nextUpItem.season}:E${this._nextUpItem.episode}</span>
                                 ` : d}
                             </div>
                             <h3 class="next-up-title">${this._nextUpItem.name}</h3>
                             <div class="next-up-sub">
-                                ${this._nextUpItem.runtime_minutes ? n`<span>${this._formatRuntime(this._nextUpItem.runtime_minutes)}</span>` : d}
-                                ${this._nextUpItem.rating ? n`
+                                ${this._nextUpItem.runtime_minutes ? l`<span>${this._formatRuntime(this._nextUpItem.runtime_minutes)}</span>` : d}
+                                ${this._nextUpItem.rating ? l`
                                     <span>•</span>
                                     <span class="next-up-rating"><ha-icon icon="mdi:star"></ha-icon> ${this._nextUpItem.rating.toFixed(1)}</span>
                                 ` : d}
@@ -3902,21 +3902,21 @@ let y = class extends T {
                 ` : d}
 
                 <div class="stats-row">
-                    ${e.rating ? n`
+                    ${e.rating ? l`
                         <div class="stat-item">
                             <ha-icon icon="mdi:star" style="color: #FBC02D;"></ha-icon>
                             <span>${e.rating.toFixed(1)}</span>
                         </div>
                     ` : d}
-                    ${t ? n`
-                        ${e.unplayed_count !== void 0 ? n`
+                    ${t ? l`
+                        ${e.unplayed_count !== void 0 ? l`
                             <div class="stat-item">
                                 <ha-icon icon="mdi:television-classic"></ha-icon>
                                 <span>${e.unplayed_count} Unplayed</span>
                             </div>
                         ` : d}
-                    ` : n`
-                        ${e.runtime_minutes ? n`
+                    ` : l`
+                        ${e.runtime_minutes ? l`
                             <div class="stat-item">
                                 <ha-icon icon="mdi:clock-outline"></ha-icon>
                                 <span>${this._formatRuntime(e.runtime_minutes)}</span>
@@ -3925,11 +3925,11 @@ let y = class extends T {
                     `}
                 </div>
 
-                ${e.description ? n`<div class="description">${e.description}</div>` : d}
+                ${e.description ? l`<div class="description">${e.description}</div>` : d}
 
-                ${e.genres && e.genres.length > 0 ? n`
+                ${e.genres && e.genres.length > 0 ? l`
                     <div class="genres-list">
-                        ${e.genres.map((a) => n`<span class="genre-tag">${a}</span>`)}
+                        ${e.genres.map((a) => l`<span class="genre-tag">${a}</span>`)}
                     </div>
                 ` : d}
 
@@ -3939,13 +3939,13 @@ let y = class extends T {
         `;
   }
   _renderEpisodesContent() {
-    if (!this._item) return n``;
+    if (!this._item) return l``;
     const e = this._item.name, t = Array.from(
       new Set(
         this._episodes.map((a) => a.season).filter((a) => typeof a == "number" && !isNaN(a))
       )
     ).sort((a, o) => a - o), i = this._selectedSeason && this._selectedSeason !== "all" ? this._episodes.filter((a) => a.season === this._selectedSeason) : this._episodes;
-    return n`
+    return l`
             <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden; position: relative; z-index: 1;">
                 <div class="episodes-header">
                     <button class="back-btn" @click=${(a) => this._toggleEpisodesView(a)} type="button" title="Back to Details">
@@ -3954,12 +3954,12 @@ let y = class extends T {
                     <h2 class="episodes-title">${e}</h2>
                 </div>
 
-                ${t.length > 1 ? n`
+                ${t.length > 1 ? l`
                     <div class="season-selector">
                         <button class="season-tab ${this._selectedSeason === "all" || !this._selectedSeason ? "active" : ""}" @click=${() => {
       this._selectedSeason = "all", this.requestUpdate();
     }}>All</button>
-                        ${t.map((a) => n`
+                        ${t.map((a) => l`
                             <button class="season-tab ${this._selectedSeason === a ? "active" : ""}" @click=${() => {
       this._selectedSeason = a, this.requestUpdate();
     }}>Season ${a}</button>
@@ -3968,11 +3968,11 @@ let y = class extends T {
                 ` : d}
                 
                 <div class="episodes-list">
-                    ${i.length === 0 ? n`
+                    ${i.length === 0 ? l`
                         <div style="text-align: center; color: rgba(255,255,255,0.6); padding: 40px 20px;">
                             No episodes found.
                         </div>
-                    ` : i.map((a) => n`
+                    ` : i.map((a) => l`
                         <div class="episode-row ${this._nextUpItem && a.id === this._nextUpItem.id ? "next-up-highlight" : ""}" @click=${(o) => {
       o.stopPropagation(), this._handlePlayEpisode(a);
     }}>
@@ -3981,13 +3981,13 @@ let y = class extends T {
                             <div class="episode-content">
                                 <h4 class="episode-title">
                                     ${a.season ? `S${a.season}:E${a.episode || a.index_number || ""}` : `${a.episode || a.index_number || ""}`}. ${a.name || "Episode"}
-                                    ${this._nextUpItem && a.id === this._nextUpItem.id ? n`<span style="font-size: 0.7em; background: var(--primary-color, #03a9f4); color: white; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; white-space: nowrap;">NEXT UP</span>` : d}
+                                    ${this._nextUpItem && a.id === this._nextUpItem.id ? l`<span style="font-size: 0.7em; background: var(--primary-color, #03a9f4); color: white; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; white-space: nowrap;">NEXT UP</span>` : d}
                                 </h4>
                                 
                                 <div class="episode-footer">
                                     <div class="episode-meta">
                                         <span>${this._formatRuntime(a.runtime_minutes)}</span>
-                                        ${a.rating ? n` <ha-icon icon="mdi:star" style="--mdc-icon-size: 14px; color: #FBC02D; margin-left: 6px; transform: translateY(-1px);"></ha-icon> ${a.rating.toFixed(1)}` : d}
+                                        ${a.rating ? l` <ha-icon icon="mdi:star" style="--mdc-icon-size: 14px; color: #FBC02D; margin-left: 6px; transform: translateY(-1px);"></ha-icon> ${a.rating.toFixed(1)}` : d}
                                     </div>
 
                                     <div class="episode-actions">
@@ -4021,18 +4021,18 @@ let y = class extends T {
     if (a) {
       if (a.Width && a.Height) {
         let u = "";
-        a.Width >= 3800 || a.Height >= 2e3 ? u = "4K UHD" : a.Height >= 1e3 || a.Width >= 1900 ? u = "1080p" : a.Height >= 700 || a.Width >= 1200 ? u = "720p" : u = `${a.Width}x${a.Height}`, t.push(n`<span class="tech-chip"><ha-icon icon="mdi:video-outline"></ha-icon>${u}</span>`);
+        a.Width >= 3800 || a.Height >= 2e3 ? u = "4K UHD" : a.Height >= 1e3 || a.Width >= 1900 ? u = "1080p" : a.Height >= 700 || a.Width >= 1200 ? u = "720p" : u = `${a.Width}x${a.Height}`, t.push(l`<span class="tech-chip"><ha-icon icon="mdi:video-outline"></ha-icon>${u}</span>`);
       }
       const s = (a.VideoRangeType || "").toUpperCase(), r = (a.VideoRange || "").toUpperCase(), h = (a.ColorTransfer || "").toLowerCase(), c = a.DvProfile;
       let p = e.dynamic_range || "";
-      p || (s.startsWith("DOVI") || c != null ? p = "Dolby Vision" : s === "HDR10PLUS" || s === "HDR10+" ? p = "HDR10+" : s === "HDR10" || h === "smpte2084" ? p = "HDR10" : s === "HLG" || h === "arib-std-b67" ? p = "HLG" : r === "HDR" && (p = "HDR")), p && p !== "SDR" && t.push(n`<span class="tech-chip tech-chip-hdr"><ha-icon icon="mdi:hdr"></ha-icon>${p}</span>`), a.Codec && t.push(n`<span class="tech-chip">${a.Codec.toUpperCase()}</span>`);
+      p || (s.startsWith("DOVI") || c != null ? p = "Dolby Vision" : s === "HDR10PLUS" || s === "HDR10+" ? p = "HDR10+" : s === "HDR10" || h === "smpte2084" ? p = "HDR10" : s === "HLG" || h === "arib-std-b67" ? p = "HLG" : r === "HDR" && (p = "HDR")), p && p !== "SDR" && t.push(l`<span class="tech-chip tech-chip-hdr"><ha-icon icon="mdi:hdr"></ha-icon>${p}</span>`), a.Codec && t.push(l`<span class="tech-chip">${a.Codec.toUpperCase()}</span>`);
     }
     const o = i.find((s) => s.Type?.toLowerCase() === "audio" && !!s.IsDefault) || i.find((s) => s.Type?.toLowerCase() === "audio");
-    if (o && (o.Codec && t.push(n`<span class="tech-chip"><ha-icon icon="mdi:volume-high"></ha-icon>${o.Codec.toUpperCase()}</span>`), o.Channels)) {
+    if (o && (o.Codec && t.push(l`<span class="tech-chip"><ha-icon icon="mdi:volume-high"></ha-icon>${o.Codec.toUpperCase()}</span>`), o.Channels)) {
       let s = `${o.Channels} ch`;
-      o.Channels === 6 ? s = "5.1" : o.Channels === 8 ? s = "7.1" : o.Channels === 2 && (s = "Stereo"), t.push(n`<span class="tech-chip">${s}</span>`);
+      o.Channels === 6 ? s = "5.1" : o.Channels === 8 ? s = "7.1" : o.Channels === 2 && (s = "Stereo"), t.push(l`<span class="tech-chip">${s}</span>`);
     }
-    return t.length === 0 ? n`` : n`
+    return t.length === 0 ? l`` : l`
             <div class="divider"></div>
             <div class="tech-specs-row">
                 ${t}
@@ -4173,16 +4173,16 @@ let X = class extends T {
   }
   render() {
     if (!this.hass || !this._config)
-      return n``;
-    const e = this._config.click_action || "more-info", t = this._config.hold_action || "jellyfin", i = this._config.double_tap_action || "none", a = e === "cast" || t === "cast" || i === "cast", o = this.hass.locale?.language || this.hass.language;
-    return n`
+      return l``;
+    const e = this._config.click_action || "more-info", t = this._config.hold_action || "jellyfin", i = this._config.double_tap_action || "none", a = e === "cast" || t === "cast" || i === "cast", o = this.hass.locale?.language || this.hass.language, r = this._config.layout === "grid" && this._config.enable_pagination === !1 && (this._config.auto_swipe_interval || 0) > 0 ? n(o, "editor.rows") : n(o, "editor.columns");
+    return l`
       <div class="card-config">
         <div class="form-row">
           <ha-selector
             .hass=${this.hass}
             .selector=${{ entity: { domain: "sensor" } }}
             .value=${this._config.entity}
-            label="${l(o, "editor.entity")}"
+            label="${n(o, "editor.entity")}"
             @value-changed=${this._entityChanged}
           ></ha-selector>
         </div>
@@ -4192,8 +4192,8 @@ let X = class extends T {
             .hass=${this.hass}
             .selector=${{ text: {} }}
             .value=${this._config.title || ""}
-            .label=${l(o, "editor.title")}
-            label="${l(o, "editor.title")}"
+            .label=${n(o, "editor.title")}
+            label="${n(o, "editor.title")}"
             @value-changed=${this._titleChanged}
           ></ha-selector>
         </div>
@@ -4206,15 +4206,15 @@ let X = class extends T {
       select: {
         mode: "dropdown",
         options: [
-          { value: "carousel", label: l(o, "editor.layout_carousel") },
-          { value: "grid", label: l(o, "editor.layout_grid") },
-          { value: "list", label: l(o, "editor.layout_list") }
+          { value: "carousel", label: n(o, "editor.layout_carousel") },
+          { value: "grid", label: n(o, "editor.layout_grid") },
+          { value: "list", label: n(o, "editor.layout_list") }
         ]
       }
     }}
               .value=${this._config.layout || "carousel"}
-              .label=${l(o, "editor.layout")}
-              label="${l(o, "editor.layout")}"
+              .label=${n(o, "editor.layout")}
+              label="${n(o, "editor.layout")}"
               @value-changed=${this._layoutChanged}
             ></ha-selector>
           </div>
@@ -4226,22 +4226,22 @@ let X = class extends T {
       select: {
         mode: "dropdown",
         options: [
-          { value: "both", label: l(o, "editor.media_type_both") },
-          { value: "movies", label: l(o, "editor.media_type_movies") },
-          { value: "series", label: l(o, "editor.media_type_series") },
-          { value: "next_up", label: l(o, "editor.media_type_next_up") }
+          { value: "both", label: n(o, "editor.media_type_both") },
+          { value: "movies", label: n(o, "editor.media_type_movies") },
+          { value: "series", label: n(o, "editor.media_type_series") },
+          { value: "next_up", label: n(o, "editor.media_type_next_up") }
         ]
       }
     }}
               .value=${this._config.media_type || "both"}
-              .label=${l(o, "editor.media_type")}
-              label="${l(o, "editor.media_type")}"
+              .label=${n(o, "editor.media_type")}
+              label="${n(o, "editor.media_type")}"
               @value-changed=${this._mediaTypeChanged}
             ></ha-selector>
           </div>
         </div>
 
-        ${!this._config.layout || this._config.layout === "carousel" ? n`
+        ${!this._config.layout || this._config.layout === "carousel" ? l`
           <div class="form-row">
             <ha-selector
               .hass=${this.hass}
@@ -4249,20 +4249,20 @@ let X = class extends T {
       select: {
         mode: "dropdown",
         options: [
-          { value: "center", label: l(o, "editor.alignment_center") || "Center" },
-          { value: "left", label: l(o, "editor.alignment_left") || "Left" }
+          { value: "center", label: n(o, "editor.alignment_center") || "Center" },
+          { value: "left", label: n(o, "editor.alignment_left") || "Left" }
         ]
       }
     }}
               .value=${this._config.horizontal_alignment || "center"}
-              .label=${l(o, "editor.horizontal_alignment") || "Carousel Alignment"}
-              label="${l(o, "editor.horizontal_alignment") || "Carousel Alignment"}"
+              .label=${n(o, "editor.horizontal_alignment") || "Carousel Alignment"}
+              label="${n(o, "editor.horizontal_alignment") || "Carousel Alignment"}"
               @value-changed=${this._horizontalAlignmentChanged}
             ></ha-selector>
           </div>
         ` : ""}
 
-        ${this._config.media_type === "series" || this._config.media_type === "both" || !this._config.media_type ? n`
+        ${this._config.media_type === "series" || this._config.media_type === "both" || !this._config.media_type ? l`
           <div class="form-row">
             <ha-selector
               .hass=${this.hass}
@@ -4270,20 +4270,20 @@ let X = class extends T {
       select: {
         mode: "dropdown",
         options: [
-          { value: "series", label: l(o, "editor.tv_content_series") },
-          { value: "episodes", label: l(o, "editor.tv_content_episodes") }
+          { value: "series", label: n(o, "editor.tv_content_series") },
+          { value: "episodes", label: n(o, "editor.tv_content_episodes") }
         ]
       }
     }}
               .value=${this._config.tv_content || "series"}
-              .label=${l(o, "editor.tv_content")}
-              label="${l(o, "editor.tv_content")}"
+              .label=${n(o, "editor.tv_content")}
+              label="${n(o, "editor.tv_content")}"
               @value-changed=${this._tvContentChanged}
             ></ha-selector>
           </div>
         ` : ""}
 
-        ${this._config.layout === "grid" || this._config.layout === "list" ? n`
+        ${this._config.layout === "grid" || this._config.layout === "list" ? l`
               <div class="form-row">
                 <ha-selector
                   .hass=${this.hass}
@@ -4295,8 +4295,8 @@ let X = class extends T {
       }
     }}
                   .value=${this._config.columns || 1}
-                  .label=${`${columnsLabel}: ${(this._config.columns || 1) === 1 ? l(o, "editor.auto") : this._config.columns}`}
-                  label="${`${columnsLabel}: ${(this._config.columns || 1) === 1 ? l(o, "editor.auto") : this._config.columns}`}"
+                  .label=${`${r}: ${(this._config.columns || 1) === 1 ? n(o, "editor.auto") : this._config.columns}`}
+                  label="${`${r}: ${(this._config.columns || 1) === 1 ? n(o, "editor.auto") : this._config.columns}`}"
                   @value-changed=${this._columnsChanged}
                 ></ha-selector>
               </div>
@@ -4314,8 +4314,8 @@ let X = class extends T {
       }
     }}
               .value=${this._config.items_per_page !== void 0 && this._config.items_per_page !== null ? this._config.items_per_page : 5}
-              .label=${l(o, "editor.items_per_page")}
-              label="${l(o, "editor.items_per_page")}"
+              .label=${n(o, "editor.items_per_page")}
+              label="${n(o, "editor.items_per_page")}"
               @value-changed=${this._itemsPerPageChanged}
             ></ha-selector>
           </div>
@@ -4331,8 +4331,8 @@ let X = class extends T {
       }
     }}
               .value=${this._config.max_pages !== void 0 && this._config.max_pages !== null ? this._config.max_pages : 5}
-              .label=${l(o, "editor.max_pages")}
-              label="${l(o, "editor.max_pages")}"
+              .label=${n(o, "editor.max_pages")}
+              label="${n(o, "editor.max_pages")}"
               @value-changed=${this._maxPagesChanged}
             ></ha-selector>
           </div>
@@ -4351,8 +4351,8 @@ let X = class extends T {
       }
     }}
               .value=${this._config.auto_swipe_interval !== void 0 && this._config.auto_swipe_interval !== null ? this._config.auto_swipe_interval : 0}
-              .label=${l(o, "editor.auto_swipe")}
-              label="${l(o, "editor.auto_swipe")}"
+              .label=${n(o, "editor.auto_swipe")}
+              label="${n(o, "editor.auto_swipe")}"
               @value-changed=${this._autoSwipeIntervalChanged}
             ></ha-selector>
           </div>
@@ -4369,8 +4369,8 @@ let X = class extends T {
       }
     }}
               .value=${this._config.new_badge_days !== void 0 && this._config.new_badge_days !== null ? this._config.new_badge_days : 3}
-              .label=${l(o, "editor.new_badge_days")}
-              label="${l(o, "editor.new_badge_days")}"
+              .label=${n(o, "editor.new_badge_days")}
+              label="${n(o, "editor.new_badge_days")}"
               @value-changed=${this._newBadgeDaysChanged}
             ></ha-selector>
           </div>
@@ -4384,18 +4384,18 @@ let X = class extends T {
       select: {
         mode: "dropdown",
         options: [
-          { value: "jellyfin", label: l(o, "editor.action_jellyfin") },
-          { value: "cast", label: l(o, "editor.action_cast") },
-          { value: "more-info", label: l(o, "editor.action_more_info") },
-          { value: "trailer", label: l(o, "editor.action_trailer") },
-          { value: "call-service", label: l(o, "editor.action_call_service") },
-          { value: "none", label: l(o, "editor.action_none") }
+          { value: "jellyfin", label: n(o, "editor.action_jellyfin") },
+          { value: "cast", label: n(o, "editor.action_cast") },
+          { value: "more-info", label: n(o, "editor.action_more_info") },
+          { value: "trailer", label: n(o, "editor.action_trailer") },
+          { value: "call-service", label: n(o, "editor.action_call_service") },
+          { value: "none", label: n(o, "editor.action_none") }
         ]
       }
     }}
               .value=${e}
-              .label=${l(o, "editor.click_action")}
-              label="${l(o, "editor.click_action")}"
+              .label=${n(o, "editor.click_action")}
+              label="${n(o, "editor.click_action")}"
               @value-changed=${this._clickActionChanged}
             ></ha-selector>
           </div>
@@ -4407,18 +4407,18 @@ let X = class extends T {
       select: {
         mode: "dropdown",
         options: [
-          { value: "jellyfin", label: l(o, "editor.action_jellyfin") },
-          { value: "cast", label: l(o, "editor.action_cast") },
-          { value: "more-info", label: l(o, "editor.action_more_info") },
-          { value: "trailer", label: l(o, "editor.action_trailer") },
-          { value: "call-service", label: l(o, "editor.action_call_service") },
-          { value: "none", label: l(o, "editor.action_none") }
+          { value: "jellyfin", label: n(o, "editor.action_jellyfin") },
+          { value: "cast", label: n(o, "editor.action_cast") },
+          { value: "more-info", label: n(o, "editor.action_more_info") },
+          { value: "trailer", label: n(o, "editor.action_trailer") },
+          { value: "call-service", label: n(o, "editor.action_call_service") },
+          { value: "none", label: n(o, "editor.action_none") }
         ]
       }
     }}
               .value=${t}
-              .label=${l(o, "editor.hold_action")}
-              label="${l(o, "editor.hold_action")}"
+              .label=${n(o, "editor.hold_action")}
+              label="${n(o, "editor.hold_action")}"
               @value-changed=${this._holdActionChanged}
             ></ha-selector>
           </div>
@@ -4432,31 +4432,31 @@ let X = class extends T {
       select: {
         mode: "dropdown",
         options: [
-          { value: "jellyfin", label: l(o, "editor.action_jellyfin") },
-          { value: "cast", label: l(o, "editor.action_cast") },
-          { value: "more-info", label: l(o, "editor.action_more_info") },
-          { value: "trailer", label: l(o, "editor.action_trailer") },
-          { value: "call-service", label: l(o, "editor.action_call_service") },
-          { value: "none", label: l(o, "editor.action_none") }
+          { value: "jellyfin", label: n(o, "editor.action_jellyfin") },
+          { value: "cast", label: n(o, "editor.action_cast") },
+          { value: "more-info", label: n(o, "editor.action_more_info") },
+          { value: "trailer", label: n(o, "editor.action_trailer") },
+          { value: "call-service", label: n(o, "editor.action_call_service") },
+          { value: "none", label: n(o, "editor.action_none") }
         ]
       }
     }}
               .value=${i}
-              .label=${l(o, "editor.double_tap_action")}
-              label="${l(o, "editor.double_tap_action")}"
+              .label=${n(o, "editor.double_tap_action")}
+              label="${n(o, "editor.double_tap_action")}"
               @value-changed=${this._doubleTapActionChanged}
             ></ha-selector>
           </div>
 
-          ${a ? n`
+          ${a ? l`
                 <div class="form-row">
                   <ha-entity-picker
                     .hass=${this.hass}
                     .value=${this._config.default_cast_device}
                     .includeDomains=${["media_player"]}
                     .entityFilter=${this._filterCastDevices}
-                    .label=${l(o, "editor.default_cast_device") || "Default Cast Device"}
-                    label="${l(o, "editor.default_cast_device") || "Default Cast Device"}"
+                    .label=${n(o, "editor.default_cast_device") || "Default Cast Device"}
+                    label="${n(o, "editor.default_cast_device") || "Default Cast Device"}"
                     @value-changed=${this._defaultCastDeviceChanged}
                   ></ha-entity-picker>
                 </div>
@@ -4468,36 +4468,36 @@ let X = class extends T {
       select: {
         mode: "dropdown",
         options: [
-          { value: "auto", label: l(o, "editor.subtitles_auto") || "Auto (Jellyfin User Profile)" },
-          { value: "none", label: l(o, "editor.subtitles_none") || "None (Disabled)" },
-          { value: "forced_only", label: l(o, "editor.subtitles_forced_only") || "Forced Only" },
-          { value: "custom", label: l(o, "editor.subtitles_custom") || "Custom Language List" }
+          { value: "auto", label: n(o, "editor.subtitles_auto") || "Auto (Jellyfin User Profile)" },
+          { value: "none", label: n(o, "editor.subtitles_none") || "None (Disabled)" },
+          { value: "forced_only", label: n(o, "editor.subtitles_forced_only") || "Forced Only" },
+          { value: "custom", label: n(o, "editor.subtitles_custom") || "Custom Language List" }
         ]
       }
     }}
                     .value=${this._config.subtitle_mode || "auto"}
-                    .label=${l(o, "editor.subtitles") || "Cast Subtitles"}
-                    label="${l(o, "editor.subtitles") || "Cast Subtitles"}"
+                    .label=${n(o, "editor.subtitles") || "Cast Subtitles"}
+                    label="${n(o, "editor.subtitles") || "Cast Subtitles"}"
                     @value-changed=${this._subtitleModeChanged}
                   ></ha-selector>
                 </div>
 
-                ${this._config.subtitle_mode === "custom" ? n`
+                ${this._config.subtitle_mode === "custom" ? l`
                     <div class="form-row">
                       <ha-selector
                         .hass=${this.hass}
                         .selector=${{ text: {} }}
                         .value=${this._config.subtitle_language || ""}
-                        .label=${l(o, "editor.subtitle_languages") || "Cast Subtitle Priority (e.g. sl, en)"}
-                        label="${l(o, "editor.subtitle_languages") || "Cast Subtitle Priority (e.g. sl, en)"}"
+                        .label=${n(o, "editor.subtitle_languages") || "Cast Subtitle Priority (e.g. sl, en)"}
+                        label="${n(o, "editor.subtitle_languages") || "Cast Subtitle Priority (e.g. sl, en)"}"
                         @value-changed=${this._subtitleLanguageChanged}
                       ></ha-selector>
                     </div>
                   ` : ""}
-              ` : n`<div></div>`}
+              ` : l`<div></div>`}
         </div>
 
-        ${e === "call-service" ? n`
+        ${e === "call-service" ? l`
             <div class="form-row">
               <ha-selector
                 .hass=${this.hass}
@@ -4507,14 +4507,14 @@ let X = class extends T {
       }
     }}
                 .value=${this._config.click_service || this._config.service || ""}
-                .label=${`${l(o, "editor.click_action")}: ${l(o, "editor.service_to_call")}`}
-                label="${l(o, "editor.click_action")}: ${l(o, "editor.service_to_call")}"
+                .label=${`${n(o, "editor.click_action")}: ${n(o, "editor.service_to_call")}`}
+                label="${n(o, "editor.click_action")}: ${n(o, "editor.service_to_call")}"
                 @value-changed=${this._clickServiceChanged}
               ></ha-selector>
             </div>
           ` : ""}
 
-        ${t === "call-service" ? n`
+        ${t === "call-service" ? l`
             <div class="form-row">
               <ha-selector
                 .hass=${this.hass}
@@ -4524,14 +4524,14 @@ let X = class extends T {
       }
     }}
                 .value=${this._config.hold_service || this._config.service || ""}
-                .label=${`${l(o, "editor.hold_action")}: ${l(o, "editor.service_to_call")}`}
-                label="${l(o, "editor.hold_action")}: ${l(o, "editor.service_to_call")}"
+                .label=${`${n(o, "editor.hold_action")}: ${n(o, "editor.service_to_call")}`}
+                label="${n(o, "editor.hold_action")}: ${n(o, "editor.service_to_call")}"
                 @value-changed=${this._holdServiceChanged}
               ></ha-selector>
             </div>
           ` : ""}
 
-        ${i === "call-service" ? n`
+        ${i === "call-service" ? l`
             <div class="form-row">
               <ha-selector
                 .hass=${this.hass}
@@ -4541,20 +4541,20 @@ let X = class extends T {
       }
     }}
                 .value=${this._config.double_tap_service || this._config.service || ""}
-                .label=${`${l(o, "editor.double_tap_action")}: ${l(o, "editor.service_to_call")}`}
-                label="${l(o, "editor.double_tap_action")}: ${l(o, "editor.service_to_call")}"
+                .label=${`${n(o, "editor.double_tap_action")}: ${n(o, "editor.service_to_call")}`}
+                label="${n(o, "editor.double_tap_action")}: ${n(o, "editor.service_to_call")}"
                 @value-changed=${this._doubleTapServiceChanged}
               ></ha-selector>
             </div>
           ` : ""}
 
-        ${e === "cast" || t === "cast" || i === "cast" ? n`
+        ${e === "cast" || t === "cast" || i === "cast" ? l`
               <div class="checkbox-row">
                 <ha-switch
                   .checked=${this._config.show_now_playing !== !1}
                   @change=${this._showNowPlayingChanged}
                 ></ha-switch>
-                <span>${l(o, "editor.show_now_playing_overlay")}</span>
+                <span>${n(o, "editor.show_now_playing_overlay")}</span>
               </div>
             ` : ""}
 
@@ -4563,7 +4563,7 @@ let X = class extends T {
         .checked=${this._config.show_title !== !1}
         @change=${this._showTitleChanged}
       ></ha-switch>
-      <span>${l(o, "editor.show_title")}</span>
+      <span>${n(o, "editor.show_title")}</span>
     </div>
 
     <div class="checkbox-row">
@@ -4571,7 +4571,7 @@ let X = class extends T {
         .checked=${this._config.show_year !== !1}
         @change=${this._showYearChanged}
       ></ha-switch>
-      <span>${l(o, "editor.show_year")}</span>
+      <span>${n(o, "editor.show_year")}</span>
     </div>
 
     <div class="checkbox-row">
@@ -4579,7 +4579,7 @@ let X = class extends T {
         .checked=${this._config.show_ratings !== !1}
         @change=${this._showRatingsChanged}
       ></ha-switch>
-      <span>${l(o, "editor.show_rating")}</span>
+      <span>${n(o, "editor.show_rating")}</span>
     </div>
 
     <div class="checkbox-row">
@@ -4587,7 +4587,7 @@ let X = class extends T {
         .checked=${this._config.show_runtime !== !1}
         @change=${this._showRuntimeChanged}
       ></ha-switch>
-      <span>${l(o, "editor.show_runtime")}</span>
+      <span>${n(o, "editor.show_runtime")}</span>
     </div>
 
     <div class="checkbox-row">
@@ -4595,7 +4595,7 @@ let X = class extends T {
         .checked=${this._config.show_date_added === !0}
         @change=${this._showDateAddedChanged}
       ></ha-switch>
-      <span>${l(o, "editor.show_date_added")}</span>
+      <span>${n(o, "editor.show_date_added")}</span>
     </div>
 
     <div class="checkbox-row">
@@ -4603,7 +4603,7 @@ let X = class extends T {
         .checked=${this._config.show_genres !== !1}
         @change=${this._showGenresChanged}
       ></ha-switch>
-      <span>${l(o, "editor.show_genres")}</span>
+      <span>${n(o, "editor.show_genres")}</span>
     </div>
 
     <div class="checkbox-row">
@@ -4611,7 +4611,7 @@ let X = class extends T {
         .checked=${this._config.show_description_on_hover !== !1}
         @change=${this._showDescriptionOnHoverChanged}
       ></ha-switch>
-      <span>${l(o, "editor.show_description")}</span>
+      <span>${n(o, "editor.show_description")}</span>
     </div>
 
     <div class="checkbox-row">
@@ -4619,7 +4619,7 @@ let X = class extends T {
         .checked=${this._config.show_media_type_badge !== !1}
         @change=${this._showMediaTypeBadgeChanged}
       ></ha-switch>
-      <span>${l(o, "editor.show_media_type_badge")}</span>
+      <span>${n(o, "editor.show_media_type_badge")}</span>
     </div>
 
     <div class="checkbox-row">
@@ -4627,7 +4627,7 @@ let X = class extends T {
         .checked=${this._config.show_watched_status !== !1}
         @change=${this._showWatchedStatusChanged}
       ></ha-switch>
-      <span>${l(o, "editor.show_watched_status")}</span>
+      <span>${n(o, "editor.show_watched_status")}</span>
     </div>
 
     <div class="checkbox-row">
@@ -4635,7 +4635,7 @@ let X = class extends T {
         .checked=${this._config.show_search === !0}
         @change=${this._showSearchChanged}
       ></ha-switch>
-      <span>${l(o, "editor.show_search")}</span>
+      <span>${n(o, "editor.show_search")}</span>
     </div>
 
     <div class="side-by-side">
@@ -4646,43 +4646,43 @@ let X = class extends T {
       select: {
         mode: "dropdown",
         options: [
-          { value: "below", label: l(o, "editor.metadata_below") },
-          { value: "above", label: l(o, "editor.metadata_above") }
+          { value: "below", label: n(o, "editor.metadata_below") },
+          { value: "above", label: n(o, "editor.metadata_above") }
         ]
       }
     }}
           .value=${this._config.metadata_position || "below"}
-          .label=${l(o, "editor.metadata_position")}
-          label="${l(o, "editor.metadata_position")}"
+          .label=${n(o, "editor.metadata_position")}
+          label="${n(o, "editor.metadata_position")}"
           @value-changed=${this._metadataPositionChanged}
         ></ha-selector>
       </div>
 
       <div class="form-row">
-        ${this._config.media_type !== "next_up" ? n`
+        ${this._config.media_type !== "next_up" ? l`
             <ha-selector
               .hass=${this.hass}
               .selector=${{
       select: {
         mode: "dropdown",
         options: [
-          { value: "date_added_desc", label: l(o, "editor.sort_date_added_desc") },
-          { value: "date_added_asc", label: l(o, "editor.sort_date_added_asc") },
-          { value: "title_asc", label: l(o, "editor.sort_title_asc") },
-          { value: "title_desc", label: l(o, "editor.sort_title_desc") },
-          { value: "year_desc", label: l(o, "editor.sort_year_desc") },
-          { value: "year_asc", label: l(o, "editor.sort_year_asc") },
-          { value: "last_played_desc", label: l(o, "editor.sort_last_played_desc") },
-          { value: "last_played_asc", label: l(o, "editor.sort_last_played_asc") }
+          { value: "date_added_desc", label: n(o, "editor.sort_date_added_desc") },
+          { value: "date_added_asc", label: n(o, "editor.sort_date_added_asc") },
+          { value: "title_asc", label: n(o, "editor.sort_title_asc") },
+          { value: "title_desc", label: n(o, "editor.sort_title_desc") },
+          { value: "year_desc", label: n(o, "editor.sort_year_desc") },
+          { value: "year_asc", label: n(o, "editor.sort_year_asc") },
+          { value: "last_played_desc", label: n(o, "editor.sort_last_played_desc") },
+          { value: "last_played_asc", label: n(o, "editor.sort_last_played_asc") }
         ]
       }
     }}
               .value=${this._config.sort_option || "date_added_desc"}
-              .label=${l(o, "editor.sort_order")}
-              label="${l(o, "editor.sort_order")}"
+              .label=${n(o, "editor.sort_order")}
+              label="${n(o, "editor.sort_order")}"
               @value-changed=${this._sortOptionChanged}
             ></ha-selector>
-        ` : n`<div></div>`}
+        ` : l`<div></div>`}
       </div>
     </div>
 
@@ -4692,7 +4692,7 @@ let X = class extends T {
           .checked=${this._config.enable_pagination !== !1}
           @change=${this._enablePaginationChanged}
         ></ha-switch>
-        <span>${l(o, "editor.enable_pagination")}</span>
+        <span>${n(o, "editor.enable_pagination")}</span>
       </div>
 
       <div class="checkbox-row">
@@ -4700,7 +4700,7 @@ let X = class extends T {
           .checked=${this._config.show_pagination_dots !== !1}
           @change=${this._showPaginationDotsChanged}
         ></ha-switch>
-        <span>${l(o, "editor.show_pagination_dots")}</span>
+        <span>${n(o, "editor.show_pagination_dots")}</span>
       </div>
     </div>
 
@@ -4711,15 +4711,15 @@ let X = class extends T {
       select: {
         mode: "dropdown",
         options: [
-          { value: "all", label: l(o, "editor.filter_all") },
-          { value: "unwatched", label: l(o, "editor.filter_unwatched") },
-          { value: "watched", label: l(o, "editor.filter_watched") }
+          { value: "all", label: n(o, "editor.filter_all") },
+          { value: "unwatched", label: n(o, "editor.filter_unwatched") },
+          { value: "watched", label: n(o, "editor.filter_watched") }
         ]
       }
     }}
         .value=${this._config.status_filter || "all"}
-        .label=${l(o, "editor.filter_watch_status")}
-        label="${l(o, "editor.filter_watch_status")}"
+        .label=${n(o, "editor.filter_watch_status")}
+        label="${n(o, "editor.filter_watch_status")}"
         @value-changed=${this._statusFilterChanged}
       ></ha-selector>
     </div>
@@ -4730,7 +4730,7 @@ let X = class extends T {
           .checked=${this._config.filter_favorites === !0}
           @change=${this._filterFavoritesChanged}
         ></ha-switch>
-        <span>${l(o, "editor.filter_favorites")}</span>
+        <span>${n(o, "editor.filter_favorites")}</span>
       </div>
 
       <div class="checkbox-row">
@@ -4738,17 +4738,17 @@ let X = class extends T {
           .checked=${this._config.filter_newly_added === !0}
           @change=${this._filterNewlyAddedChanged}
         ></ha-switch>
-        <span>${l(o, "editor.filter_new_items")}</span>
+        <span>${n(o, "editor.filter_new_items")}</span>
       </div>
     </div>
 
-    ${this._config.media_type === "next_up" || (this._config.media_type === "series" || this._config.media_type === "both" || !this._config.media_type) && this._config.tv_content === "episodes" ? n`
+    ${this._config.media_type === "next_up" || (this._config.media_type === "series" || this._config.media_type === "both" || !this._config.media_type) && this._config.tv_content === "episodes" ? l`
           <div class="checkbox-row">
             <ha-switch
               .checked=${this._config.use_series_image === !0}
               @change=${this._useSeriesImageChanged}
             ></ha-switch>
-            <span>${l(o, "editor.use_series_image")}</span>
+            <span>${n(o, "editor.use_series_image")}</span>
           </div>
         ` : ""}
 
@@ -4967,11 +4967,11 @@ let k = class extends T {
     super(...arguments), this.layout = "grid", this.isNextUpHighlight = !1, this._pressStartTime = 0, this._isHoldActive = !1, this._itemTouchStartX = 0, this._itemTouchStartY = 0, this._rewindActive = !1;
   }
   render() {
-    return !this.item || !this.config || !this.hass ? n`` : this.layout === "list" ? this._renderListItem() : this._renderMediaItem();
+    return !this.item || !this.config || !this.hass ? l`` : this.layout === "list" ? this._renderListItem() : this._renderMediaItem();
   }
   _renderListItem() {
     const e = this.item, t = pe(e, this.config.new_badge_days || 0), i = this._getRating(e), a = this.config.show_media_type_badge !== !1, o = this._isItemPlaying(e);
-    return n`
+    return l`
       <div
         class="media-item list-item ${o ? "playing" : ""} ${this.config.show_title ? "" : "no-title"} ${this.config.metadata_position === "above" ? "metadata-above" : ""}"
         tabindex="0"
@@ -4987,7 +4987,7 @@ let k = class extends T {
         @contextmenu="${this._handleContextMenu}"
       >
         <div class="list-poster-wrapper">
-          ${this.config.metadata_position === "above" && this.config.show_date_added && e.date_added ? n`<p class="list-date-added">${ie(e.date_added, this.hass?.locale?.language || this.hass?.language)}</p>` : d}
+          ${this.config.metadata_position === "above" && this.config.show_date_added && e.date_added ? l`<p class="list-date-added">${ie(e.date_added, this.hass?.locale?.language || this.hass?.language)}</p>` : d}
           <div class="poster-container" id="poster-${e.id}">
             <div class="poster-inner">
               <img
@@ -5006,11 +5006,11 @@ let k = class extends T {
               />
               <div class="poster-skeleton"></div>
               
-              ${a && !o && !e.series_name ? n`<span class="list-type-badge ${e.series_name ? "series" : e.type === "Movie" ? "movie" : "series"}">
+              ${a && !o && !e.series_name ? l`<span class="list-type-badge ${e.series_name ? "series" : e.type === "Movie" ? "movie" : "series"}">
                     ${e.series_name && e.season !== void 0 && e.episode !== void 0 ? `S${String(e.season).padStart(2, "0")}E${String(e.episode).padStart(2, "0")}` : e.type === "Movie" ? "Movie" : "Series"}
                   </span>` : d}
 
-              ${e.series_name && !o ? n`
+              ${e.series_name && !o ? l`
             <div class="censor-bar list-bar ${this.isNextUpHighlight ? "highlight" : ""}">
               <span>${e.series_name}</span>
             </div>
@@ -5020,37 +5020,37 @@ let k = class extends T {
               ${this._renderNowPlayingOverlay(e)}
             </div>
           </div>
-          ${this.config.metadata_position !== "above" && this.config.show_date_added && e.date_added ? n`<p class="list-date-added">${ie(e.date_added, this.hass?.locale?.language || this.hass?.language)}</p>` : d}
+          ${this.config.metadata_position !== "above" && this.config.show_date_added && e.date_added ? l`<p class="list-date-added">${ie(e.date_added, this.hass?.locale?.language || this.hass?.language)}</p>` : d}
         </div>
         
         <div class="list-info">
-          ${this.config.show_title ? n`<h3 class="list-title">${e.name}</h3>` : d}
+          ${this.config.show_title ? l`<h3 class="list-title">${e.name}</h3>` : d}
           
           <div class="list-metadata">
-            ${a && !o ? n`<span class="list-type-badge ${e.series_name ? "series" : e.type === "Movie" ? "movie" : "series"}">
+            ${a && !o ? l`<span class="list-type-badge ${e.series_name ? "series" : e.type === "Movie" ? "movie" : "series"}">
                   ${e.series_name && e.season !== void 0 && e.episode !== void 0 ? `S${String(e.season).padStart(2, "0")}E${String(e.episode).padStart(2, "0")}` : e.type === "Movie" ? "Movie" : "Series"}
                 </span>` : d}
-            ${this.config.show_year && e.year ? n`<span class="list-year">${e.year}</span>` : d}
-            ${this.config.show_ratings && i ? n`<span class="list-rating">
+            ${this.config.show_year && e.year ? l`<span class="list-year">${e.year}</span>` : d}
+            ${this.config.show_ratings && i ? l`<span class="list-rating">
                   <ha-icon icon="mdi:star"></ha-icon>
                   ${i.toFixed(1)}
                 </span>` : d}
-            ${this.config.show_runtime && e.runtime_minutes ? n`<span class="list-runtime">
+            ${this.config.show_runtime && e.runtime_minutes ? l`<span class="list-runtime">
                   <ha-icon icon="mdi:clock-outline"></ha-icon>
                   ${_e(e.runtime_minutes)}
                 </span>` : d}
           </div>
           
-          ${this.config.show_genres && e.genres && e.genres.length > 0 ? n`<p class="list-genres">${e.genres.slice(0, 3).join(", ")}</p>` : d}
+          ${this.config.show_genres && e.genres && e.genres.length > 0 ? l`<p class="list-genres">${e.genres.slice(0, 3).join(", ")}</p>` : d}
           
-          ${this.config.show_description_on_hover !== !1 && e.description ? n`<p class="list-description">${e.description}</p>` : d}
+          ${this.config.show_description_on_hover !== !1 && e.description ? l`<p class="list-description">${e.description}</p>` : d}
         </div>
       </div>
     `;
   }
   _renderMediaItem() {
     const e = this.item, t = pe(e, this.config.new_badge_days || 0), i = this._getRating(e), a = this.config.show_media_type_badge !== !1, o = this._isItemPlaying(e);
-    return n`
+    return l`
       <div
         class="media-item ${o ? "playing" : ""}"
         tabindex="0"
@@ -5065,11 +5065,11 @@ let k = class extends T {
         @keydown="${this._handleKeydown}"
         @contextmenu="${this._handleContextMenu}"
       >
-        ${this.config.metadata_position === "above" ? n`
+        ${this.config.metadata_position === "above" ? l`
               <div class="media-info-above">
-                ${this.config.show_title ? n`<p class="media-title">${e.name}</p>` : d}
-                ${this.config.show_year && e.year ? n`<p class="media-year">${e.year}</p>` : d}
-                ${this.config.show_date_added && e.date_added ? n`<p class="media-date-added">${ie(e.date_added, this.hass?.locale?.language || this.hass?.language)}</p>` : d}
+                ${this.config.show_title ? l`<p class="media-title">${e.name}</p>` : d}
+                ${this.config.show_year && e.year ? l`<p class="media-year">${e.year}</p>` : d}
+                ${this.config.show_date_added && e.date_added ? l`<p class="media-date-added">${ie(e.date_added, this.hass?.locale?.language || this.hass?.language)}</p>` : d}
               </div>
             ` : d}
         <div class="poster-container" id="poster-${e.id}">
@@ -5090,13 +5090,13 @@ let k = class extends T {
             />
             <div class="poster-skeleton"></div>
             
-            ${a && !o ? n`
+            ${a && !o ? l`
             <span class="media-type-badge ${e.series_name ? "series" : e.type === "Movie" ? "movie" : "series"}">
               ${e.series_name && e.season !== void 0 && e.episode !== void 0 ? `S${String(e.season).padStart(2, "0")}E${String(e.episode).padStart(2, "0")}` : e.type === "Movie" ? "Movie" : "Series"}
             </span>
           ` : d}
 
-            ${e.series_name && !o ? n`
+            ${e.series_name && !o ? l`
             <div class="censor-bar ${this.isNextUpHighlight ? "highlight" : ""}">
               <span>${e.series_name}</span>
             </div>
@@ -5104,37 +5104,37 @@ let k = class extends T {
             
             ${o ? d : this._renderStatusBadge(e, t)}
             
-            ${this.config.show_ratings && i && !o ? n`
+            ${this.config.show_ratings && i && !o ? l`
                   <span class="rating">
                     <ha-icon icon="mdi:star"></ha-icon>
                     ${i.toFixed(1)}
                   </span>
                 ` : d}
             
-            ${this.config.show_runtime && e.runtime_minutes && !o ? n`
+            ${this.config.show_runtime && e.runtime_minutes && !o ? l`
                   <span class="runtime">
                     <ha-icon icon="mdi:clock-outline"></ha-icon>
                     ${_e(e.runtime_minutes)}
                   </span>
                 ` : d}
             
-            ${o ? d : n`
+            ${o ? d : l`
             <div class="hover-overlay">
-              ${e.year ? n`<span class="overlay-year">${e.year}</span>` : d}
+              ${e.year ? l`<span class="overlay-year">${e.year}</span>` : d}
               <h3 class="overlay-title">${e.name}</h3>
-              ${this.config.show_genres && e.genres && e.genres.length > 0 ? n`<span class="overlay-genres">${e.genres.slice(0, 3).join(", ")}</span>` : d}
-              ${this.config.show_description_on_hover !== !1 && e.description ? n`<p class="overlay-description">${e.description}</p>` : d}
+              ${this.config.show_genres && e.genres && e.genres.length > 0 ? l`<span class="overlay-genres">${e.genres.slice(0, 3).join(", ")}</span>` : d}
+              ${this.config.show_description_on_hover !== !1 && e.description ? l`<p class="overlay-description">${e.description}</p>` : d}
             </div>`}
 
             ${this._renderNowPlayingOverlay(e)}
           </div>
         </div>
         
-        ${this.config.metadata_position === "below" ? n`
+        ${this.config.metadata_position === "below" ? l`
               <div class="media-info-below">
-                ${this.config.show_title ? n`<p class="media-title">${e.name}</p>` : d}
-                ${this.config.show_year && e.year ? n`<p class="media-year">${e.year}</p>` : d}
-                ${this.config.show_date_added && e.date_added ? n`<p class="media-date-added">${ie(e.date_added, this.hass?.locale?.language || this.hass?.language)}</p>` : d}
+                ${this.config.show_title ? l`<p class="media-title">${e.name}</p>` : d}
+                ${this.config.show_year && e.year ? l`<p class="media-year">${e.year}</p>` : d}
+                ${this.config.show_date_added && e.date_added ? l`<p class="media-date-added">${ie(e.date_added, this.hass?.locale?.language || this.hass?.language)}</p>` : d}
               </div>
             ` : d}
       </div>
@@ -5142,21 +5142,21 @@ let k = class extends T {
   }
   _renderStatusBadge(e, t) {
     const i = this.config.show_watched_status !== !1;
-    return i && e.is_played ? n`
+    return i && e.is_played ? l`
         <div class="status-badge watched">
           <ha-icon icon="mdi:check-bold"></ha-icon>
         </div>
-      ` : i && e.type === "Series" && (e.unplayed_count || 0) > 0 ? n`
+      ` : i && e.type === "Series" && (e.unplayed_count || 0) > 0 ? l`
         <div class="status-badge unplayed">
           ${e.unplayed_count}
         </div>
-      ` : t ? n`<span class="new-badge">${l(this.hass.locale?.language || this.hass.language, "new")}</span>` : n``;
+      ` : t ? l`<span class="new-badge">${n(this.hass.locale?.language || this.hass.language, "new")}</span>` : l``;
   }
   _renderNowPlayingOverlay(e) {
     if (!this.config.show_now_playing || !this._isItemPlaying(e))
       return d;
     const t = this.hass.states[this.config.default_cast_device];
-    return n`
+    return l`
       <div 
         class="now-playing-overlay" 
         @click="${() => this._handleRewind(this.config.default_cast_device)}"
@@ -5362,7 +5362,7 @@ var At = Object.defineProperty, Et = Object.getOwnPropertyDescriptor, w = (e, t,
     (r = e[s]) && (o = (a ? r(t, i, o) : r(o)) || o);
   return a && o && At(t, i, o), o;
 };
-const Tt = "1.3.1";
+const Tt = "1.4.0";
 console.info(
   `%c JELLYHA-LIBRARY-CARD %c v${Tt} `,
   "color: white; background: #00a4dc; font-weight: bold;",
@@ -5639,13 +5639,13 @@ let v = class extends T {
   }
   // Render scroll indicator for non-paginated scrollable content
   _renderScrollIndicator() {
-    if (!this._hasScrollableContent || this._config.show_pagination_dots === !1) return n``;
+    if (!this._hasScrollableContent || this._config.show_pagination_dots === !1) return l``;
     const e = this.SCROLL_INDICATOR_DOTS, t = this._scrollProgress, i = Math.round(t * (e - 1));
-    return n`
+    return l`
       <div class="scroll-indicator">
         ${Array.from({ length: e }, (a, o) => {
       const s = o === i, r = o === 0 && t < 0.1 || o === e - 1 && t > 0.9;
-      return n`
+      return l`
         <span 
           class="scroll-dot ${s ? "active" : ""} ${r ? "pill" : ""}"
         ></span>
@@ -5817,16 +5817,16 @@ let v = class extends T {
    */
   render() {
     if (!this._config || !this.hass)
-      return n``;
+      return l``;
     if (!this.hass.states[this._config.entity])
       return this._renderError(`Entity not found: ${this._config.entity}`);
     if (this._error)
       return this._renderError(this._error);
     const t = this._filterItems(this._items || []);
-    return n`
+    return l`
       <ha-card>
         <div class="card-inner">
-            ${this._config.title ? n`
+            ${this._config.title ? l`
                   <div class="card-header">
                     <h2>${this._config.title}</h2>
                   </div>
@@ -5901,9 +5901,9 @@ let v = class extends T {
    */
   _renderLayout(e) {
     const t = this._config.layout || "carousel", i = this._config.enable_pagination !== !1;
-    return t === "carousel" ? this._renderCarousel(e, i) : t === "list" ? this._renderList(e, i) : t === "grid" ? this._renderGrid(e, i) : n`
+    return t === "carousel" ? this._renderCarousel(e, i) : t === "list" ? this._renderList(e, i) : t === "grid" ? this._renderGrid(e, i) : l`
       <div class="${t}">
-        ${e.map((a) => n`
+        ${e.map((a) => l`
             <jellyha-media-item
                 .hass=${this.hass}
                 .config=${this._config}
@@ -5920,7 +5920,7 @@ let v = class extends T {
    */
   _renderCarousel(e, t) {
     const i = this._config.items_per_page || this._itemsPerPage, a = this._config.max_pages, o = a ? Number(a) : 0, s = o > 0 ? o : 1 / 0, r = Math.min(Math.ceil(e.length / i), s), h = this._currentPage * i, c = !t && (this._config.auto_swipe_interval || 0) > 0, p = t ? e.slice(h, h + i) : c ? [...e, ...e] : e;
-    return n`
+    return l`
       <div 
         class="carousel-wrapper ${this._config.horizontal_alignment !== "left" ? "align-center" : ""}"
         @touchstart="${this._handleTouchStart}"
@@ -5934,7 +5934,7 @@ let v = class extends T {
           class="carousel ${t ? "paginated" : "scrollable"}"
           @scroll="${t ? d : this._handleScroll}"
         >
-          ${p.map((u) => n`
+          ${p.map((u) => l`
             <jellyha-media-item
                 .hass=${this.hass}
                 .config=${this._config}
@@ -5955,7 +5955,7 @@ let v = class extends T {
    */
   _renderList(e, t) {
     const i = this._config.items_per_page || this._itemsPerPage, a = this._config.max_pages, o = a ? Number(a) : 0, s = o > 0 ? o : 1 / 0, r = Math.min(Math.ceil(e.length / i), s), h = this._currentPage * i, c = !t && (this._config.auto_swipe_interval || 0) > 0, p = t ? e.slice(h, h + i) : c ? [...e, ...e] : e, u = this._effectiveListColumns, _ = u === 1;
-    return n`
+    return l`
       <div 
         class="list-wrapper"
         @touchstart="${this._handleTouchStart}"
@@ -5969,7 +5969,7 @@ let v = class extends T {
           class="list ${t ? "paginated" : ""} ${_ ? "single-column" : ""}"
           style="--jf-list-columns: ${u}"
         >
-          ${p.map((m) => n`
+          ${p.map((m) => l`
             <jellyha-media-item
                 .hass=${this.hass}
                 .config=${this._config}
@@ -5989,7 +5989,7 @@ let v = class extends T {
    */
   _renderGrid(e, t) {
     const i = this._config.items_per_page || this._itemsPerPage, a = this._config.max_pages, o = a ? Number(a) : 0, s = o > 0 ? o : 1 / 0, r = Math.min(Math.ceil(e.length / i), s), h = this._currentPage * i, c = !t && (this._config.auto_swipe_interval || 0) > 0, p = t ? e.slice(h, h + i) : c ? [...e, ...e] : e, u = this._config.columns || 1, _ = u === 1, m = !t && (this._config.auto_swipe_interval || 0) > 0;
-    return n`
+    return l`
       <div class="grid-outer">
         <div 
           class="grid-wrapper"
@@ -6005,7 +6005,7 @@ let v = class extends T {
             class="grid ${t ? "paginated" : ""} ${_ ? "auto-columns" : ""} ${m ? "horizontal" : ""}"
             style="--jf-columns: ${u}; --jf-grid-rows: ${u}"
           >
-            ${p.map((f) => n`
+            ${p.map((f) => l`
                 <jellyha-media-item
                     .hass=${this.hass}
                     .config=${this._config}
@@ -6027,15 +6027,15 @@ let v = class extends T {
    * Decides between standard and smart pagination based on page count
    */
   _renderPagination(e) {
-    return this._config.show_pagination_dots === !1 ? n`` : e <= 5 ? this._renderStandardPagination(e) : this._renderSmartPagination(e);
+    return this._config.show_pagination_dots === !1 ? l`` : e <= 5 ? this._renderStandardPagination(e) : this._renderSmartPagination(e);
   }
   /**
    * Render Standard Pagination (Existing Logic preserved)
    */
   _renderStandardPagination(e) {
-    return n`
+    return l`
       <div class="pagination-dots">
-        ${Array.from({ length: e }, (t, i) => n`
+        ${Array.from({ length: e }, (t, i) => l`
           <button
             type="button"
             class="pagination-dot ${i === this._currentPage ? "active" : ""}"
@@ -6053,7 +6053,7 @@ let v = class extends T {
    */
   _renderSmartPagination(e) {
     const h = -(this._currentPage * 16) + 32;
-    return n`
+    return l`
       <div class="pagination-container smart" style="width: ${72}px">
         <div 
           class="pagination-track" 
@@ -6062,7 +6062,7 @@ let v = class extends T {
           ${Array.from({ length: e }, (c, p) => {
       const u = Math.abs(p - this._currentPage);
       let _ = "smart-dot";
-      return p === this._currentPage ? _ += " active" : u > 2 ? _ += " hidden" : u === 2 && (_ += " small"), n`
+      return p === this._currentPage ? _ += " active" : u > 2 ? _ += " hidden" : u === 2 && (_ += " small"), l`
               <button
                 type="button"
                 class="${_}"
@@ -6094,7 +6094,7 @@ let v = class extends T {
         break;
       case "trailer":
         e.trailer_url ? window.open(e.trailer_url, "_blank") : W(this, "hass-notification", {
-          message: l(this.hass.locale?.language || this.hass.language, "no_trailer")
+          message: n(this.hass.locale?.language || this.hass.language, "no_trailer")
         });
         break;
       case "call-service":
@@ -6141,6 +6141,8 @@ let v = class extends T {
       video_range_type: e.video_range_type || null,
       video_codec: e.video_codec || null,
       dv_profile: e.dv_profile || null,
+      path: e.path || null,
+      filepath: e.filepath || e.path || null,
       config_entry_id: e.config_entry_id || e.entry_id || null,
       action_type: t
     };
@@ -6213,10 +6215,10 @@ let v = class extends T {
    * Render empty state
    */
   _renderEmpty() {
-    return n`
+    return l`
       <div class="empty">
         <ha-icon icon="mdi:movie-open-outline"></ha-icon>
-        <p>${l(this.hass.locale?.language || this.hass.language, "no_media")}</p>
+        <p>${n(this.hass.locale?.language || this.hass.language, "no_media")}</p>
       </div>
     `;
   }
@@ -6224,7 +6226,7 @@ let v = class extends T {
    * Render error state
    */
   _renderError(e) {
-    return n`
+    return l`
       <ha-card>
         <div class="error">
           <ha-icon icon="mdi:alert-circle"></ha-icon>
@@ -6260,18 +6262,18 @@ let v = class extends T {
       o.genres && o.genres.forEach((s) => t.add(s));
     });
     const i = Array.from(t).sort(), a = this.hass.locale?.language || this.hass.language;
-    return n`
+    return l`
       <div class="search-container">
         <div class="search-input-wrapper">
           <ha-icon icon="mdi:magnify" class="search-icon"></ha-icon>
           <input 
             type="text" 
             class="search-input" 
-            placeholder="${l(a, "search.placeholder_title")}"
+            placeholder="${n(a, "search.placeholder_title")}"
             .value="${this._searchQuery}"
             @input="${this._handleSearchInput}"
           />
-          ${this._searchQuery ? n`
+          ${this._searchQuery ? l`
             <button class="clear-search" @click="${() => {
       this._searchQuery = "", this._currentPage = 0;
     }}">
@@ -6282,8 +6284,8 @@ let v = class extends T {
         
         <div class="search-select-wrapper">
           <select class="search-select" @change="${this._handleGenreChange}" .value="${this._searchGenre}">
-             <option value="">${l(a, "search.all_genres")}</option>
-             ${i.map((o) => n`
+             <option value="">${n(a, "search.all_genres")}</option>
+             ${i.map((o) => l`
                <option value="${o}">${o}</option>
              `)}
           </select>
@@ -6367,7 +6369,7 @@ let Z = class extends T {
   }
   render() {
     if (!this.hass || !this._config)
-      return n``;
+      return l``;
     const e = Object.keys(this.hass.states).filter(
       (s) => s.startsWith("media_player.jellyha_") && !s.includes("_library_browser") && !s.endsWith("_browser")
     ), t = Object.keys(this.hass.states).filter(
@@ -6386,8 +6388,8 @@ let Z = class extends T {
       entity: this._config.entity,
       label: String(this.hass.states[this._config.entity]?.attributes?.friendly_name || this._config.entity)
     });
-    const a = this.hass.locale?.language || this.hass.language, o = l(a, "editor.media_player") || "Media Player";
-    return n`
+    const a = this.hass.locale?.language || this.hass.language, o = n(a, "editor.media_player") || "Media Player";
+    return l`
       <div class="card-config">
         <div class="form-row">
           <ha-selector
@@ -6414,8 +6416,8 @@ let Z = class extends T {
             .hass=${this.hass}
             .selector=${{ text: {} }}
             .value=${this._config.title || ""}
-            .label="${l(a, "editor.title")} (Optional)"
-            label="${l(a, "editor.title")} (Optional)"
+            .label="${n(a, "editor.title")} (Optional)"
+            label="${n(a, "editor.title")} (Optional)"
             @value-changed=${this._titleChanged}
           ></ha-selector>
         </div>
@@ -6426,14 +6428,14 @@ let Z = class extends T {
               .checked=${this._config.show_title !== !1}
               @change=${this._showTitleChanged}
             ></ha-switch>
-            <span>${l(a, "editor.show_title")}</span>
+            <span>${n(a, "editor.show_title")}</span>
           </div>
           <div class="checkbox-row">
             <ha-switch
               .checked=${this._config.show_subtitle !== !1}
               @change=${this._showSubtitleChanged}
             ></ha-switch>
-            <span>${l(a, "editor.show_subtitle")}</span>
+            <span>${n(a, "editor.show_subtitle")}</span>
           </div>
         </div>
 
@@ -6442,7 +6444,7 @@ let Z = class extends T {
             .checked=${this._config.show_media_type_badge !== !1}
             @change=${this._showMediaTypeBadgeChanged}
           ></ha-switch>
-          <span>${l(a, "editor.show_media_type_badge")}</span>
+          <span>${n(a, "editor.show_media_type_badge")}</span>
         </div>
 
         <div class="checkbox-pair">
@@ -6451,14 +6453,14 @@ let Z = class extends T {
               .checked=${this._config.show_year !== !1}
               @change=${this._showYearChanged}
             ></ha-switch>
-            <span>${l(a, "editor.show_year")}</span>
+            <span>${n(a, "editor.show_year")}</span>
           </div>
           <div class="checkbox-row">
             <ha-switch
               .checked=${this._config.show_genres !== !1}
               @change=${this._showGenresChanged}
             ></ha-switch>
-            <span>${l(a, "editor.show_genres")}</span>
+            <span>${n(a, "editor.show_genres")}</span>
           </div>
         </div>
 
@@ -6467,7 +6469,7 @@ let Z = class extends T {
             .checked=${this._config.show_runtime !== !1}
             @change=${this._showRuntimeChanged}
           ></ha-switch>
-          <span>${l(a, "editor.show_runtime")}</span>
+          <span>${n(a, "editor.show_runtime")}</span>
         </div>
 
         <div class="checkbox-row">
@@ -6475,7 +6477,7 @@ let Z = class extends T {
             .checked=${this._config.show_ratings !== !1}
             @change=${this._showRatingsChanged}
           ></ha-switch>
-          <span>${l(a, "editor.show_rating")}</span>
+          <span>${n(a, "editor.show_rating")}</span>
         </div>
 
         <div class="checkbox-pair">
@@ -6484,14 +6486,14 @@ let Z = class extends T {
               .checked=${this._config.show_user !== !1}
               @change=${this._showUserChanged}
             ></ha-switch>
-            <span>${l(a, "editor.show_user")}</span>
+            <span>${n(a, "editor.show_user")}</span>
           </div>
           <div class="checkbox-row">
             <ha-switch
               .checked=${this._config.show_client !== !1}
               @change=${this._showClientChanged}
             ></ha-switch>
-            <span>${l(a, "editor.show_client")}</span>
+            <span>${n(a, "editor.show_client")}</span>
           </div>
         </div>
 
@@ -6500,7 +6502,7 @@ let Z = class extends T {
             .checked=${this._config.show_time === !0}
             @change=${this._showTimeChanged}
           ></ha-switch>
-          <span>${l(a, "editor.show_time")}</span>
+          <span>${n(a, "editor.show_time")}</span>
         </div>
 
         <div class="checkbox-row">
@@ -6508,7 +6510,7 @@ let Z = class extends T {
             .checked=${this._config.show_background !== !1}
             @change=${this._showBackgroundChanged}
           ></ha-switch>
-          <span>${l(a, "editor.show_background")}</span>
+          <span>${n(a, "editor.show_background")}</span>
         </div>
 
         <div class="checkbox-row">
@@ -6516,7 +6518,7 @@ let Z = class extends T {
             .checked=${this._config.use_series_image === !0}
             @change=${this._useSeriesImageChanged}
           ></ha-switch>
-          <span>${l(a, "editor.use_series_image")}</span>
+          <span>${n(a, "editor.use_series_image")}</span>
         </div>
 
         <div class="checkbox-row">
@@ -6524,7 +6526,7 @@ let Z = class extends T {
             .checked=${this._config.show_controls !== !1}
             @change=${this._showControlsChanged}
           ></ha-switch>
-          <span>${l(a, "editor.show_controls") || "Show Playback Controls"}</span>
+          <span>${n(a, "editor.show_controls") || "Show Playback Controls"}</span>
         </div>
       </div>
     `;
@@ -6707,13 +6709,13 @@ let S = class extends T {
   }
   render() {
     if (!this.hass || !this._config)
-      return n``;
+      return l``;
     const e = this._config.entity;
     if (!e)
       return this._renderError("Please configure a JellyHA Now Playing entity");
     const t = this.hass.states[e];
     if (!t)
-      return this._renderError(l(this.hass.locale?.language || this.hass.language, "entity_not_found") || "Entity not found");
+      return this._renderError(n(this.hass.locale?.language || this.hass.language, "entity_not_found") || "Entity not found");
     const i = t.attributes, a = e.startsWith("media_player.");
     if (!(a && (t.state === "playing" || t.state === "paused") || !!i.item_id))
       return this._renderEmpty();
@@ -6728,43 +6730,43 @@ let S = class extends T {
     }
     b !== this._cachedColorItemId && m && (this._cachedColorItemId = b, this._extractDominantColor(G(m, 80)));
     const P = this._cachedBackdropUrl, $ = this._config.show_background !== !1 && P, H = a ? t.state === "paused" : i.is_paused, E = (i.media_type || t.attributes.media_content_type || "").toLowerCase(), F = E === "audio" || E === "music", xe = i.title || t.attributes.media_title || "", $e = this._config.show_subtitle !== !1 && (i.artist_name || t.attributes.media_artist || i.series_title || t.attributes.media_series_title) || "", qe = this._config.show_year !== !1 && i.year ? String(i.year) : "", Ve = this._config.show_genres !== !1 && i.genres?.length ? i.genres.slice(0, 2).join(", ") : "", ke = [qe, Ve].filter(Boolean).join(" • "), ee = this._config.show_user !== !1 && i.user_name || "", de = this._config.show_client !== !1 && i.client || "", Se = i.season !== void 0 ? i.season : t.attributes.media_season, Ce = i.episode !== void 0 ? i.episode : t.attributes.media_episode, Pe = (E === "episode" || E === "tvshow") && Se !== void 0 && Ce !== void 0 ? `S${String(Se).padStart(2, "0")}E${String(Ce).padStart(2, "0")}` : i.media_type || "", ce = f && this._optimisticFavorites[f] !== void 0 ? this._optimisticFavorites[f] : i.is_favorite || !1, je = 125.66, Xe = je * (1 - this._longPressProgress), M = this._supportsRemote(t);
-    return n`
+    return l`
             <ha-card class="jellyha-now-playing ${$ ? "has-background" : ""} ${this._config.title ? "has-title" : ""}" style="--card-dominant-color: ${this._dominantColor};">
-                ${$ ? n`
+                ${$ ? l`
                     <div class="card-background" style="background-image: url('${P}')"></div>
                     <div class="card-overlay"></div>
                 ` : d}
                 
                 <div class="card-content">
-                    ${this._config.title ? n`
+                    ${this._config.title ? l`
                         <div class="card-header">${this._config.title}</div>
                     ` : d}
                     
                     <div class="main-container">
-                        ${m ? n`
+                        ${m ? l`
                             <div class="poster-container ${M ? "" : "no-rewind"}" @click=${M ? this._handlePosterRewind : void 0}>
                                 <img src="${G(m, 160)}" alt="${xe}" loading="eager" fetchpriority="high" />
                                 
-                                ${this._config.show_media_type_badge !== !1 && Pe ? n`
+                                ${this._config.show_media_type_badge !== !1 && Pe ? l`
                                     <span class="poster-badge media-type-badge ${E}">${Pe}</span>
                                 
                                 ` : d}
-                                ${this._config.show_ratings !== !1 && i.community_rating ? n`
+                                ${this._config.show_ratings !== !1 && i.community_rating ? l`
                                     <span class="poster-badge rating-badge">
                                         <ha-icon icon="mdi:star"></ha-icon>
                                         ${i.community_rating.toFixed(1)}
                                     </span>
                                 ` : d}
-                                ${this._config.show_runtime !== !1 && (i.runtime_minutes || s > 0) ? n`
+                                ${this._config.show_runtime !== !1 && (i.runtime_minutes || s > 0) ? l`
                                     <span class="poster-badge runtime-badge">
                                         <ha-icon icon="mdi:clock-outline"></ha-icon>
                                         ${E === "audio" && s > 0 ? `${Math.floor(s / 60)}m ${Math.floor(s % 60)}s` : _e(i.runtime_minutes || Math.round(s / 60))}
                                     </span>
                                 ` : d}
 
-                                ${this._rewindActive ? n`
+                                ${this._rewindActive ? l`
                                     <div class="rewind-overlay">
-                                        <span>${l(this.hass.locale?.language || this.hass.language, "rewinding")}</span>
+                                        <span>${n(this.hass.locale?.language || this.hass.language, "rewinding")}</span>
                                     </div>
                                 ` : d}
                             </div>
@@ -6773,24 +6775,24 @@ let S = class extends T {
                         <div class="info-container">
                             <div class="info-top">
                                 <div class="header">
-                                    ${this._config.show_title !== !1 ? n`<div class="title">${xe}</div>` : d}
-                                    ${$e ? n`<div class="subtitle">${$e}</div>` : d}
-                                    ${this._overflowState < 1 && ke ? n`<div class="meta-line">${ke}</div>` : d}
-                                    ${this._overflowState < 1 && (ee || de) ? n`<div class="client-line">${ee ? n`<strong>${ee}</strong>` : d}${ee && de ? " " : ""}${de || d}</div>` : d}
+                                    ${this._config.show_title !== !1 ? l`<div class="title">${xe}</div>` : d}
+                                    ${$e ? l`<div class="subtitle">${$e}</div>` : d}
+                                    ${this._overflowState < 1 && ke ? l`<div class="meta-line">${ke}</div>` : d}
+                                    ${this._overflowState < 1 && (ee || de) ? l`<div class="client-line">${ee ? l`<strong>${ee}</strong>` : d}${ee && de ? " " : ""}${de || d}</div>` : d}
                                 </div>
                             </div>
 
                             <div class="info-bottom">
-                                ${M && this._config.show_controls !== !1 ? n`
+                                ${M && this._config.show_controls !== !1 ? l`
                                     <div class="playback-controls">
-                                        ${F ? n`
+                                        ${F ? l`
                                             <ha-icon-button class="music-subtle-btn ${ce ? "active" : ""}" .label=${"Favorite"} @click=${() => this._handleFavoriteToggle(i.item_id, ce)}>
                                                 <ha-icon icon="${ce ? "mdi:heart" : "mdi:heart-outline"}"></ha-icon>
                                             </ha-icon-button>
-                                            <ha-icon-button .label=${l(this.hass.locale?.language || this.hass.language, "previous") || "Previous"} @click=${() => this._handleControl("PreviousTrack")}>
+                                            <ha-icon-button .label=${n(this.hass.locale?.language || this.hass.language, "previous") || "Previous"} @click=${() => this._handleControl("PreviousTrack")}>
                                                 <ha-icon icon="mdi:skip-previous"></ha-icon>
                                             </ha-icon-button>
-                                        ` : n`
+                                        ` : l`
                                             <ha-icon-button class="seek-btn" .label=${"Rewind 10s"} @click=${() => this._handleSeekRelative(-10)}>
                                                 <ha-icon icon="mdi:rewind-10"></ha-icon>
                                             </ha-icon-button>
@@ -6802,12 +6804,12 @@ let S = class extends T {
                                             @pointerleave=${this._endLongPress}
                                             @contextmenu=${(te) => te.preventDefault()}
                                         >
-                                            ${this._rewindActive ? n`
-                                                <ha-icon-button class="play-pause-btn spinning" .label=${l(this.hass.locale?.language || this.hass.language, "loading")}>
+                                            ${this._rewindActive ? l`
+                                                <ha-icon-button class="play-pause-btn spinning" .label=${n(this.hass.locale?.language || this.hass.language, "loading")}>
                                                     <ha-icon icon="mdi:loading"></ha-icon>
                                                 </ha-icon-button>
-                                            ` : H ? n`
-                                                <ha-icon-button class="play-pause-btn" .label=${l(this.hass.locale?.language || this.hass.language, "play")} @click=${() => {
+                                            ` : H ? l`
+                                                <ha-icon-button class="play-pause-btn" .label=${n(this.hass.locale?.language || this.hass.language, "play")} @click=${() => {
       if (this._longPressConsumed) {
         this._longPressConsumed = !1;
         return;
@@ -6816,8 +6818,8 @@ let S = class extends T {
     }}>
                                                     <ha-icon icon="mdi:play"></ha-icon>
                                                 </ha-icon-button>
-                                            ` : n`
-                                                <ha-icon-button class="play-pause-btn" .label=${l(this.hass.locale?.language || this.hass.language, "pause")} @click=${() => {
+                                            ` : l`
+                                                <ha-icon-button class="play-pause-btn" .label=${n(this.hass.locale?.language || this.hass.language, "pause")} @click=${() => {
       if (this._longPressConsumed) {
         this._longPressConsumed = !1;
         return;
@@ -6827,7 +6829,7 @@ let S = class extends T {
                                                     <ha-icon icon="mdi:pause"></ha-icon>
                                                 </ha-icon-button>
                                             `}
-                                            ${this._longPressProgress > 0 ? n`
+                                            ${this._longPressProgress > 0 ? l`
                                                 <svg class="stop-ring" viewBox="0 0 44 44">
                                                     <circle cx="22" cy="22" r="20"
                                                         stroke="#ef4444" stroke-width="3" fill="none"
@@ -6839,14 +6841,14 @@ let S = class extends T {
                                             ` : d}
                                         </div>
 
-                                        ${F ? n`
-                                            <ha-icon-button .label=${l(this.hass.locale?.language || this.hass.language, "next") || "Next"} @click=${() => this._handleControl("NextTrack")}>
+                                        ${F ? l`
+                                            <ha-icon-button .label=${n(this.hass.locale?.language || this.hass.language, "next") || "Next"} @click=${() => this._handleControl("NextTrack")}>
                                                 <ha-icon icon="mdi:skip-next"></ha-icon>
                                             </ha-icon-button>
                                             <ha-icon-button class="music-subtle-btn ${i.repeat_mode && i.repeat_mode !== "RepeatNone" ? "active" : ""}" .label=${"Repeat"} @click=${() => this._handleRepeatMode(i.session_id, i.repeat_mode || "RepeatNone")}>
                                                 <ha-icon icon="${i.repeat_mode === "RepeatOne" ? "mdi:repeat-once" : "mdi:repeat"}"></ha-icon>
                                             </ha-icon-button>
-                                        ` : n`
+                                        ` : l`
                                             <ha-icon-button class="seek-btn" .label=${"Forward 30s"} @click=${() => this._handleSeekRelative(30)}>
                                                 <ha-icon icon="mdi:fast-forward-30"></ha-icon>
                                             </ha-icon-button>
@@ -6866,7 +6868,7 @@ let S = class extends T {
                                     </div>
                                 </div>
 
-                                ${this._config.show_time && s > 0 ? n`
+                                ${this._config.show_time && s > 0 ? l`
                                     <div class="timestamps">
                                         <span class="time-elapsed">${this._formatSeconds(c)}</span>
                                         <span class="time-remaining">${this._formatSeconds(-(s - c))}</span>
@@ -6891,7 +6893,7 @@ let S = class extends T {
   _renderEmpty() {
     this._fetchPhrases();
     const t = this.hass.themes?.darkMode ? "https://raw.githubusercontent.com/home-assistant/brands/master/custom_integrations/jellyha/dark_logo.png" : "https://raw.githubusercontent.com/home-assistant/brands/master/custom_integrations/jellyha/logo.png", i = "https://raw.githubusercontent.com/home-assistant/brands/master/custom_integrations/jellyha/icon.png";
-    let a = l(this.hass.locale?.language || this.hass.language, "nothing_playing");
+    let a = n(this.hass.locale?.language || this.hass.language, "nothing_playing");
     if (this._phrases.length > 0) {
       const s = Math.floor(Date.now() / 864e5) % this._phrases.length;
       a = this._phrases[s];
@@ -6909,7 +6911,7 @@ let S = class extends T {
       const u = p ? this.hass.states[p].state : "0";
       a = a.replace(/\[number\]/g, u);
     }
-    return n`
+    return l`
             <ha-card class="jellyha-now-playing empty-state">
                 <div class="card-content">
                     <div class="logo-container full-logo">
@@ -6924,7 +6926,7 @@ let S = class extends T {
         `;
   }
   _renderError(e) {
-    return n`
+    return l`
             <ha-card class="error-state">
                 <div class="card-content">
                     <p>${e}</p>

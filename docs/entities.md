@@ -125,7 +125,7 @@ data:
 
 | Entity ID | Description | State | Key Attributes |
 |---|---|---|---|
-| `sensor.jellyha_library` | Primary library sensor | Total items count | `server_name`, `movies`, `series`, `videos`, `episodes`, `entry_id` |
+| `sensor.jellyha_library` | Primary library sensor | Total items count | `server_name`, `movies`, `series`, `videos`, `episodes`, `songs`, `albums`, `artists`, `entry_id` |
 | `sensor.jellyha_movies` | Total movies in library | Count of movies | `watched`, `unwatched`, `favorites`, `entry_id` |
 | `sensor.jellyha_series` | Total TV series in library | Count of series | `watched`, `unwatched`, `favorites`, `total_episodes`, `unwatched_episodes`, `entry_id` |
 | `sensor.jellyha_episodes` | Total episodes across all series | Count of episodes | `watched`, `unwatched`, `entry_id` |
@@ -190,9 +190,10 @@ Each sensor reports the total storage consumed by that library in gigabytes and 
 
 | Entity ID Pattern | Description | State |
 |---|---|---|
-| `sensor.jellyha_now_playing_[user]` | Legacy real-time monitor for specific user | `playing`, `paused`, `idle` |
+| `sensor.jellyha_now_playing_[user]` | Legacy real-time monitor for specific user (Deprecated in v1.3.0, removal in v2.0.0) | `playing`, `paused`, `idle` |
 
-> Note: `sensor.jellyha_now_playing_[user]` is retained for backward compatibility. We recommend using `media_player.jellyha_[user]` for new dashboards and automations.
+> [!TIP]
+> **Migration Path:** `sensor.jellyha_now_playing_[user]` is deprecated in favor of `media_player.jellyha_[user]`. Migrating requires only changing the entity ID in your dashboards (`custom:jellyha-now-playing-card`) and automations. State values (`playing`, `paused`, `idle`) and all card options are 100% identical. See [Dashboard Cards Configuration](cards.md#migrating-from-legacy-now-playing-sensors-sensorjellyha_now_playing_) for details.
 
 ---
 
