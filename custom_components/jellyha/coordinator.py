@@ -32,6 +32,7 @@ from .ws_client import JellyfinWebSocketClient
 from .media_strategy import MediaStrategy
 from .const import (
     CONF_API_KEY,
+    CONF_ENABLE_LIVE_TV,
     CONF_LIBRARIES,
     CONF_REFRESH_INTERVAL,
     CONF_SERVER_URL,
@@ -230,12 +231,15 @@ class JellyHALibraryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             except Exception as err:
                 _LOGGER.debug("Failed to fetch storage info: %s", err)
 
-            try:
-                self._live_tv_channels = await self._api.get_live_tv_channels()
-            except Exception as err:
-                # Live TV is optional; a server without Live TV must not make
-                # the library integration unavailable or discard last-good data.
-                _LOGGER.debug("Failed to fetch Live TV channels: %s", err)
+            if self.entry.options.get(CONF_ENABLE_LIVE_TV, self.entry.data.get(CONF_ENABLE_LIVE_TV, False)):
+                try:
+                    self._live_tv_channels = await self._api.get_live_tv_channels()
+                except Exception as err:
+                    # Live TV is optional; a server without Live TV must not make
+                    # the library integration unavailable or discard last-good data.
+                    _LOGGER.debug("Failed to fetch Live TV channels: %s", err)
+            else:
+                self._live_tv_channels = []
 
             # Update last refresh time (always updates)
             self.last_refresh_time = dt_util.utcnow()

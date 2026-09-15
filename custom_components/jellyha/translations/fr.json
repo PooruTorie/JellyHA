@@ -83,7 +83,11 @@
                     "external_url": "URL externe (Optionnel, pour les liens de l'interface)",
                     "refresh_interval": "Intervalle de rafraîchissement de la bibliothèque",
                     "update_credentials": "Mettre à jour les informations / Changer d'utilisateur",
-                    "libraries": "Bibliothèques"
+                    "libraries": "Bibliothèques",
+                    "enable_live_tv": "Activer la télévision en direct"
+                },
+                "data_description": {
+                    "enable_live_tv": "Activer les chaînes de télévision en direct, les services dédiés et le navigateur multimédia."
                 }
             },
             "auth_method": {
@@ -217,6 +221,9 @@
             },
             "library_episodes_watched_percentage": {
                 "name": "Pourcentage d'épisodes vus de la bibliothèque"
+            },
+            "live_tv_channels": {
+                "name": "Chaînes de télévision en direct"
             }
         },
         "media_player": {
@@ -373,6 +380,34 @@
                 "item_id": {
                     "name": "ID de l'élément",
                     "description": "L'ID de l'élément Jellyfin."
+                }
+            }
+        },
+        "get_live_tv_channels": {
+            "name": "Obtenir les chaînes de télévision en direct",
+            "description": "Récupérer les chaînes Jellyfin disponibles avec filtrage de recherche optionnel.",
+            "fields": {
+                "query": {
+                    "name": "Requête de recherche",
+                    "description": "Filtrer les chaînes par nom ou numéro (optionnel)."
+                },
+                "limit": {
+                    "name": "Limite",
+                    "description": "Nombre maximum de chaînes renvoyées (optionnel)."
+                }
+            }
+        },
+        "play_live_tv_channel": {
+            "name": "Lire la chaîne de télévision en direct",
+            "description": "Résoudre une chaîne de télévision en direct par numéro ou nom et la lire.",
+            "fields": {
+                "channel_number": {
+                    "name": "Numéro de chaîne",
+                    "description": "Numéro de chaîne Jellyfin exact."
+                },
+                "channel_name": {
+                    "name": "Nom de la chaîne",
+                    "description": "Nom de la chaîne Jellyfin."
                 }
             }
         }

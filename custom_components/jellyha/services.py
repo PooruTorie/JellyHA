@@ -201,6 +201,8 @@ GET_ITEM_SCHEMA = vol.Schema({
 })
 
 LIVE_TV_CHANNELS_SCHEMA = vol.Schema({
+    vol.Optional("query"): cv.string,
+    vol.Optional("limit"): cv.positive_int,
     vol.Optional("entity_id"): cv.entity_id,
     vol.Optional("server_entity_id"): cv.entity_id,
     vol.Optional("config_entry_id"): cv.string,
@@ -649,16 +651,44 @@ async def async_register_services(hass: HomeAssistant) -> None:
             raise ValueError(f"Get Item failed: {e}") from e
 
     async def async_get_live_tv_channels(call: ServiceCall) -> ServiceResponse:
-        """Retrieve Live TV channels with safe display metadata."""
+        """Retrieve Live TV channels with optional filtering and search."""
         target_entity_id = (
             call.data.get("server_entity_id") or call.data.get("entity_id")
         )
         coordinator = _get_coordinator(
             hass, call.data.get("config_entry_id"), target_entity_id
         )
+        query = call.data.get("query")
+        limit = call.data.get("limit")
+
         try:
-            channels = await coordinator._api.get_live_tv_channels()
+            # Use coordinator in-memory cache if available, otherwise fetch from API
+            channels = (
+                coordinator.data.get("live_tv_channels")
+                if coordinator.data and coordinator.data.get("live_tv_channels")
+                else None
+            )
+            if channels is None:
+                channels = await coordinator._api.get_live_tv_channels()
+
+            # Filter if query was provided
+            if query and str(query).strip():
+                query_str = str(query).strip().lower()
+                norm_query = coordinator._api.normalize_live_tv_channel_name(query_str)
+                filtered = []
+                for ch in channels:
+                    name = str(ch.get("Name") or "")
+                    norm_name = coordinator._api.normalize_live_tv_channel_name(name)
+                    num = str(ch.get("ChannelNumber") or "").strip()
+                    if query_str == num or norm_query in norm_name or query_str in name.lower():
+                        filtered.append(ch)
+                channels = filtered
+
+            if limit and limit > 0:
+                channels = channels[:limit]
+
             return {
+                "total": len(channels),
                 "channels": [
                     {
                         "id": channel.get("Id"),

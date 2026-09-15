@@ -677,8 +677,23 @@ get_item:
 
 get_live_tv_channels:
   name: Get Live TV Channels
-  description: Retrieve the available Jellyfin Live TV channels.
+  description: Retrieve the available Jellyfin Live TV channels with optional search query filtering.
   fields:
+    query:
+      name: Search Query
+      description: Filter channels by name or number (optional).
+      required: false
+      selector:
+        text:
+    limit:
+      name: Result Limit
+      description: Maximum number of channels to return (optional).
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 1000
+          mode: box
     config_entry_id:
       name: JellyHA Instance
       required: false

@@ -18,10 +18,12 @@ CONF_DEVICE_NAME = "device_name"
 CONF_INSTANCE_LABEL = "instance_label"
 CONF_DEVICE_PLAYERS = "device_players"
 CONF_DEVICE_NAMES = "device_names"
+CONF_ENABLE_LIVE_TV = "enable_live_tv"
 
 # Defaults
 DEFAULT_REFRESH_INTERVAL = 3600  # 1 hour
 DEFAULT_DEVICE_NAME = "JellyHA"
+DEFAULT_ENABLE_LIVE_TV = False
 
 # Refresh interval dropdown options: list of (label, seconds)
 # Value 0 = Off (disables polling)

@@ -85,10 +85,12 @@
                     "refresh_interval": "Library Refresh Interval",
                     "device_players": "Client/Device Media Players (Optional)",
                     "trigger_library_refresh": "Refresh fetched data immediately",
-                    "update_credentials": "Update Credentials / Switch User"
+                    "update_credentials": "Update Credentials / Switch User",
+                    "enable_live_tv": "Enable Live TV"
                 },
                 "data_description": {
-                    "device_players": "Select client devices (e.g. Smart TVs, Android TV boxes) to create dedicated media player entities for. These maintain state and attributes per device regardless of which user is watching."
+                    "device_players": "Select client devices (e.g. Smart TVs, Android TV boxes) to create dedicated media player entities for. These maintain state and attributes per device regardless of which user is watching.",
+                    "enable_live_tv": "Enable Live TV channels, dedicated services, and Media Browser tuning."
                 }
             },
             "auth_method": {
@@ -276,7 +278,17 @@
         },
         "get_live_tv_channels": {
             "name": "Get Live TV Channels",
-            "description": "Retrieve available Jellyfin Live TV channels."
+            "description": "Retrieve available Jellyfin Live TV channels with optional search filtering.",
+            "fields": {
+                "query": {
+                    "name": "Search Query",
+                    "description": "Filter channels by name or number (optional)."
+                },
+                "limit": {
+                    "name": "Limit",
+                    "description": "Maximum number of channels to return (optional)."
+                }
+            }
         },
         "play_live_tv_channel": {
             "name": "Play Live TV Channel",

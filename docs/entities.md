@@ -146,12 +146,9 @@ data:
 
 | Entity ID | Description | State | Key Attributes |
 |---|---|---|---|
-| `sensor.jellyha_live_tv_channels` | Available Jellyfin Live TV channels | Channel count | `channels` |
+| `sensor.jellyha_live_tv_channels` | Available Jellyfin Live TV channels count | Channel count (integer) | `entry_id`, `server_name`, `total_channels` |
 
-Each item in the `channels` attribute contains `id`, `number`, `name`,
-`normalized_name`, and an authenticated Home Assistant proxy `image_url` when
-Jellyfin provides channel artwork. The sensor is refreshed with the normal
-JellyHA coordinator refresh.
+> Note: To enable this sensor, turn on **Enable Live TV** in the integration's Options Flow. The sensor reports the total channel count and updates with the normal coordinator refresh cycle. To retrieve full channel details or build custom cards, use the `jellyha.get_live_tv_channels` action or browse channels visually via Home Assistant's native Media Browser.
 
 ### Latest Content Sensors
 

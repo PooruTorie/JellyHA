@@ -97,6 +97,8 @@ async def async_browse_media(
         return await _build_recent_list(coordinator, entry_id)
     elif category == "favorites":
         return await _build_favorites_list(coordinator, entry_id)
+    elif category in ("livetv", "live_tv"):
+        return await _build_livetv_list(coordinator, entry_id)
     elif category == "item" and item_id:
         # Return item details for playback
         return await _build_item_details(coordinator, entry_id, item_id)
@@ -206,6 +208,21 @@ async def _build_root_menu(coordinator, entry_id: str) -> BrowseMedia:
             )
         )
 
+    # Live TV channels (if configured and available)
+    live_tv_channels = coordinator.data.get("live_tv_channels", []) if coordinator.data else []
+    if live_tv_channels:
+        children.append(
+            BrowseMedia(
+                title="📡 Live TV",
+                media_class=MediaClass.DIRECTORY,
+                media_content_id=build_item_id("livetv"),
+                media_content_type=MediaType.CHANNEL,
+                can_play=False,
+                can_expand=True,
+                thumbnail=None,
+            )
+        )
+
     # We always show Recently Added and Favorites if the user has ANY library synced
     if views:
         children.extend([
@@ -234,6 +251,60 @@ async def _build_root_menu(coordinator, entry_id: str) -> BrowseMedia:
         media_class=MediaClass.DIRECTORY,
         media_content_id=build_item_id("root"),
         media_content_type=MediaType.CHANNELS,
+        can_play=False,
+        can_expand=True,
+        children=children,
+    )
+
+
+async def _build_livetv_list(coordinator, entry_id: str) -> BrowseMedia:
+    """Build list of Live TV channels."""
+    channels = coordinator.data.get("live_tv_channels", []) if coordinator.data else []
+
+    def channel_sort_key(ch: dict[str, Any]) -> tuple[int, float, str]:
+        num_str = str(ch.get("ChannelNumber") or ch.get("number") or "")
+        name = str(ch.get("Name") or ch.get("name") or "").lower()
+        try:
+            return (0, float(num_str), name)
+        except ValueError:
+            return (1, 0.0, name)
+
+    sorted_channels = sorted(channels, key=channel_sort_key)
+
+    children = []
+    for ch in sorted_channels:
+        channel_id = ch.get("Id") or ch.get("id")
+        if not channel_id:
+            continue
+        number = ch.get("ChannelNumber") or ch.get("number")
+        name = ch.get("Name") or ch.get("name") or "Unknown Channel"
+        display_title = f"{number} - {name}" if number is not None and str(number).strip() else name
+
+        image_tags = ch.get("ImageTags") or {}
+        has_primary = "Primary" in image_tags
+        thumbnail = (
+            _signed_image_url(coordinator.hass, entry_id, channel_id, "Primary")
+            if has_primary
+            else None
+        )
+
+        children.append(
+            BrowseMedia(
+                title=display_title,
+                media_class=MediaClass.CHANNEL,
+                media_content_id=build_item_id("item", channel_id),
+                media_content_type=MediaType.CHANNEL,
+                can_play=True,
+                can_expand=False,
+                thumbnail=thumbnail,
+            )
+        )
+
+    return BrowseMedia(
+        title="📡 Live TV",
+        media_class=MediaClass.DIRECTORY,
+        media_content_id=build_item_id("livetv"),
+        media_content_type=MediaType.CHANNEL,
         can_play=False,
         can_expand=True,
         children=children,

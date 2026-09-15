@@ -18,10 +18,10 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import generate_entity_id
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.components.http.auth import async_sign_path
 
 from .const import (
     CONF_DEVICE_NAME,
+    CONF_ENABLE_LIVE_TV,
     DEFAULT_DEVICE_NAME,
     DOMAIN,
 )
@@ -76,8 +76,11 @@ async def async_setup_entry(
         JellyHATranscodingSessionsSensor(session_coordinator, entry, device_name),
         JellyHAMediaStorageFreeSensor(coordinator, entry, device_name),
         JellyHAMediaStorageFreePercentSensor(coordinator, entry, device_name),
-        JellyHALiveTVChannelsSensor(coordinator, entry, device_name),
     ]
+
+    # Create Live TV sensor if enabled
+    if entry.options.get(CONF_ENABLE_LIVE_TV, entry.data.get(CONF_ENABLE_LIVE_TV, False)):
+        sensors.append(JellyHALiveTVChannelsSensor(coordinator, entry, device_name))
 
     # Create sensors for each user
     if session_coordinator.users:
@@ -210,10 +213,11 @@ class JellyHALibrarySensor(JellyHABaseSensor):
 
 
 class JellyHALiveTVChannelsSensor(JellyHABaseSensor):
-    """Sensor exposing Jellyfin Live TV channels for cards and automations."""
+    """Sensor exposing Jellyfin Live TV channels count."""
 
     _attr_translation_key = "live_tv_channels"
     _attr_icon = "mdi:television-classic"
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
@@ -227,33 +231,19 @@ class JellyHALiveTVChannelsSensor(JellyHABaseSensor):
     @property
     def native_value(self) -> int:
         """Return the number of available Live TV channels."""
-        return len(self.coordinator.data.get("live_tv_channels", [])) if self.coordinator.data else 0
+        if not self.coordinator.data:
+            return 0
+        return len(self.coordinator.data.get("live_tv_channels", []))
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        """Return channel number, name, normalized name, and proxied artwork."""
+        """Return lightweight channel count and server metadata."""
         channels = self.coordinator.data.get("live_tv_channels", []) if self.coordinator.data else []
-        output = []
-        for channel in channels:
-            channel_id = channel.get("Id")
-            image_url = None
-            if channel_id:
-                image_tags = channel.get("ImageTags") or {}
-                tag = image_tags.get("Primary", "")
-                path = f"/api/jellyha/image/{self._entry.entry_id}/{channel_id}/Primary?tag={tag}"
-                image_url = async_sign_path(self.hass, path, timedelta(hours=24))
-            name = str(channel.get("Name") or "")
-            output.append({
-                "id": channel_id,
-                "number": str(channel["ChannelNumber"]) if channel.get("ChannelNumber") is not None else None,
-                "name": name,
-                "normalized_name": re.sub(r"[^a-z0-9]", "", name.lower()),
-                "image_url": image_url,
-            })
         return {
             "entry_id": self._entry.entry_id,
             "config_entry_id": self._entry.entry_id,
-            "channels": output,
+            "server_name": self.coordinator.data.get("server_name") if self.coordinator.data else None,
+            "total_channels": len(channels),
         }
 
 
