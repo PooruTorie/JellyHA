@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added dedicated Live TV services: `jellyha.play_live_tv_channel` (direct tuning by channel number or name in a single step, compatible with Home Assistant Voice Assist) and `jellyha.get_live_tv_channels` (searchable channel list with query and limit parameters, plus coordinator RAM fallback).
   - Full multi-instance support and localization across 7 languages (`en`, `sl`, `de`, `fr`, `es`, `it`, `ru`).
 
+### Changed
+- **Device Custom Names in Options Flow (PR [#39](https://github.com/zupancicmarko/JellyHA/pull/39))**: Prioritized `CustomName` when generating the device player list in Integration Options Flow, displaying user-assigned nicknames from the Jellyfin Dashboard (e.g., "Living Room OLED") instead of generic hardware labels.
+
+### Fixed
+- **Device Session Collisions on webOS & Browsers (Fixes [#39](https://github.com/zupancicmarko/JellyHA/pull/39))**: Enforced exact `DeviceId` matching across device media players, companion session checks, and playback services. This eliminates cross-device session collisions caused by fuzzy 8-character and 16-character prefix slicing, which previously caused LG webOS TVs, Samsung Tizen TVs, and web browser clients to match each other due to shared base64 User-Agent prefixes (`Mozilla/5.0...`).
+
 ## [1.3.1] - 2026-09-14
 
 ### Added

@@ -526,17 +526,12 @@ class JellyHAUserSensor(CoordinatorEntity[JellyHASessionCoordinator], SensorEnti
             return True
         # Check if there is another session for the same physical client device that supports remote control
         dev_id = session.get("DeviceId") or ""
-        base_dev_id = dev_id[:16] if len(dev_id) >= 16 else dev_id
-        if base_dev_id and self.coordinator.data:
+        if dev_id and self.coordinator.data:
             for s in self.coordinator.data:
                 sid = s.get("Id")
                 if sid != session.get("Id"):
                     s_dev_id = s.get("DeviceId") or ""
-                    if (
-                        s_dev_id == base_dev_id
-                        or s_dev_id.startswith(base_dev_id)
-                        or base_dev_id.startswith(s_dev_id)
-                    ):
+                    if s_dev_id == dev_id:
                         if s.get("SupportsRemoteControl") is True:
                             return True
         # If session explicitly declares no remote control and no controllable companion session exists
