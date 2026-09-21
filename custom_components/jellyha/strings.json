@@ -7,6 +7,7 @@
                 "description": "Enter your Jellyfin server URL and choose authentication method",
                 "data": {
                     "server_url": "Server URL",
+                    "external_url": "External URL (Optional, for UI links)",
                     "auth_method": "Authentication Method"
                 },
                 "data_description": {
@@ -28,7 +29,11 @@
                 "description": "Enter your Jellyfin credentials",
                 "data": {
                     "username": "Username",
-                    "password": "Password"
+                    "password": "Password",
+                    "admin_privileges": "Admin Privileges"
+                },
+                "data_description": {
+                    "admin_privileges": "If you have admin privileges, you can select which user to use for fetching library data. Otherwise, the integration will use the credentials provided."
                 }
             },
             "user_select": {
@@ -111,7 +116,11 @@
                 "description": "Enter your Jellyfin credentials",
                 "data": {
                     "username": "Username",
-                    "password": "Password"
+                    "password": "Password",
+                    "admin_privileges": "Admin Privileges"
+                },
+                "data_description": {
+                    "admin_privileges": "If you have admin privileges, you can select which user to use for fetching library data. Otherwise, the integration will use the credentials provided."
                 }
             },
             "user_select": {

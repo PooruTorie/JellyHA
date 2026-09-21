@@ -33,7 +33,7 @@ from .const import (
     CONF_INSTANCE_LABEL,
     CONF_USER_ID,
     CONF_USERNAME,
-    DEFAULT_DEVICE_NAME,
+    CONF_ADMIN_PRIVILEGES,
     DEFAULT_ENABLE_LIVE_TV,
     DEFAULT_REFRESH_INTERVAL,
     DOMAIN,
@@ -96,6 +96,7 @@ class JellyHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         self._server_url: str | None = None
         self._external_url: str | None = None
+        self._admin_privileges: bool = True
         self._api_key: str | None = None
         self._username: str | None = None
         self._password: str | None = None
@@ -238,10 +239,11 @@ class JellyHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._username = user_input[CONF_USERNAME]
             self._password = user_input[CONF_PASSWORD]
+            self._admin_privileges = user_input[CONF_ADMIN_PRIVILEGES]
             
             session = async_get_clientsession(self.hass)
             # Initialize without API key first
-            self._api = JellyfinApiClient(self._server_url, session=session)
+            self._api = JellyfinApiClient(self._server_url, session=session, admin_privileges=self._admin_privileges)
 
             try:
                 auth_data = await self._api.authenticate(self._username, self._password)
@@ -251,24 +253,22 @@ class JellyHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                      self._server_id = unique_id
 
                 self._api_key = auth_data.get("AccessToken")
-                # User ID might be returned in auth data, but we still fetch users list for selection consistency
-                # or we could skip specific user selection if we want to bind to the logged-in user.
-                # For now, let's keep the user selection step to allow picking specific managed users if admin,
-                # or just to verify we can list users.
-                
-                # Fetch users to proceed to selection
-                self._users = await self._api.get_users()
-                
-                # OPTIONAL: If we want to auto-select the logged-in user:
-                # logged_in_id = auth_data.get("User", {}).get("Id")
-                # if logged_in_id:
-                #     self._user_id = logged_in_id
-                #     self._libraries = await self._api.get_libraries(self._user_id)
-                #     return await self.async_step_library_select()
-                
+
                 # Check if this is a reauth flow
                 if self.context.get("source") == config_entries.SOURCE_REAUTH:
                      return await self._async_update_existing_entry()
+
+                if not self._admin_privileges:
+                    logged_in_id = auth_data.get("User", {}).get("Id")
+                    if logged_in_id:
+                         self._user_id = logged_in_id
+                         self._libraries = await self._api.get_libraries(self._user_id)
+                         return await self.async_step_library_select()
+                    else:
+                        raise JellyfinAuthError()
+                
+                # Fetch users to proceed to selection
+                self._users = await self._api.get_users()
 
                 return await self.async_step_user_select()
                 
@@ -285,6 +285,7 @@ class JellyHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     vol.Required(CONF_USERNAME): str,
                     vol.Required(CONF_PASSWORD): str,
+                    vol.Required(CONF_ADMIN_PRIVILEGES, default=True): bool,
                 }
             ),
             errors=errors,
@@ -365,6 +366,7 @@ class JellyHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_LIBRARIES: user_input.get(CONF_LIBRARIES, []),
                     CONF_DEVICE_NAME: device_name,
                     CONF_INSTANCE_LABEL: instance_label,
+                    CONF_ADMIN_PRIVILEGES: self._admin_privileges,
                 },
                 options={
                     CONF_REFRESH_INTERVAL: int(user_input.get(CONF_REFRESH_INTERVAL, DEFAULT_REFRESH_INTERVAL)),
@@ -433,6 +435,7 @@ class JellyHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     **entry.data,
                     CONF_SERVER_URL: self._server_url,
                     CONF_API_KEY: self._api_key,
+                    CONF_ADMIN_PRIVILEGES: self._admin_privileges,
                 },
             )
 
@@ -455,11 +458,13 @@ class JellyHAOptionsFlowHandler(config_entries.OptionsFlow):
         self._config_entry = config_entry
         self._server_url = config_entry.data.get(CONF_SERVER_URL)
         self._api_key = config_entry.data.get(CONF_API_KEY)
+        self._admin_privileges = config_entry.data.get(CONF_ADMIN_PRIVILEGES)
         self._username: str | None = None
         self._password: str | None = None
         self._users: list[dict[str, Any]] = []
         self._user_id: str | None = None
         self._libraries: list[dict[str, Any]] = []
+        self._api: JellyfinApiClient | None = None
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -479,15 +484,15 @@ class JellyHAOptionsFlowHandler(config_entries.OptionsFlow):
         if self._server_url and self._api_key:
             try:
                 session = async_get_clientsession(self.hass)
-                api = JellyfinApiClient(self._server_url, session=session, api_key=self._api_key)
+                self._api = JellyfinApiClient(self._server_url, session=session, api_key=self._api_key, admin_privileges=self._admin_privileges)
                 if user_id:
-                    libraries = await api.get_libraries(user_id)
+                    libraries = await self._api.get_libraries(user_id)
                     library_options = [
                         selector.SelectOptionDict(value=lib["Id"], label=lib.get("Name", "Unknown"))
                         for lib in libraries
                         if lib.get("CollectionType") in ("movies", "tvshows", "mixed", "musicvideos", "homevideos", "music", "photos", None)
                     ]
-                devices = await api.get_devices()
+                devices = await self._api.get_devices()
                 for device_data in devices:
                     dev_id = device_data.get("Id")
                     if not dev_id:
@@ -504,7 +509,7 @@ class JellyHAOptionsFlowHandler(config_entries.OptionsFlow):
                     device_options.append(selector.SelectOptionDict(value=dev_id, label=label))
                     device_map[dev_id] = dev_name
             except Exception as err:
-                _LOGGER.error("Failed to fetch Jellyfin data for Options Flow: %s", err)
+                _LOGGER.error("Failed to fetch Jellyfin data for Options Flow: %s", str(self.config_entry.data), exc_info=err, stack_info=True)
 
         if not library_options:
             library_options = [
@@ -673,16 +678,16 @@ class JellyHAOptionsFlowHandler(config_entries.OptionsFlow):
         errors: dict[str, str] = {}
         if user_input is not None:
              # Validate
-             api = JellyfinApiClient(
+             self._api = JellyfinApiClient(
                  self._server_url, 
                  session=async_get_clientsession(self.hass), 
                  api_key=user_input[CONF_API_KEY]
              )
              try:
-                 await api.validate_connection()
+                 await self._api.validate_connection()
                  # Verify auth works by fetching users
                  self._api_key = user_input[CONF_API_KEY]
-                 self._users = await api.get_users()
+                 self._users = await self._api.get_users()
                  
                  return await self.async_step_user_select()
                  
@@ -701,12 +706,23 @@ class JellyHAOptionsFlowHandler(config_entries.OptionsFlow):
         """Handle Username/Password update."""
         errors: dict[str, str] = {}
         if user_input is not None:
+             self._admin_privileges = user_input[CONF_ADMIN_PRIVILEGES]
              session = async_get_clientsession(self.hass)
-             api = JellyfinApiClient(self._server_url, session=session)
+             self._api = JellyfinApiClient(self._server_url, session=session, admin_privileges=self._admin_privileges)
              try:
-                 auth_data = await api.authenticate(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
+                 auth_data = await self._api.authenticate(user_input[CONF_USERNAME], user_input[CONF_PASSWORD])
                  self._api_key = auth_data.get("AccessToken")
-                 self._users = await api.get_users()
+
+                 if not self._admin_privileges:
+                     logged_in_id = auth_data.get("User", {}).get("Id")
+                     if logged_in_id:
+                         self._user_id = logged_in_id
+                         self._libraries = await self._api.get_libraries(self._user_id)
+                         return await self.async_step_library_select()
+                     else:
+                         raise JellyfinAuthError()
+
+                 self._users = await self._api.get_users()
                  
                  return await self.async_step_user_select()
                  
@@ -717,7 +733,8 @@ class JellyHAOptionsFlowHandler(config_entries.OptionsFlow):
             step_id="auth_login",
             data_schema=vol.Schema({
                 vol.Required(CONF_USERNAME): str,
-                vol.Required(CONF_PASSWORD): str
+                vol.Required(CONF_PASSWORD): str,
+                vol.Required(CONF_ADMIN_PRIVILEGES): bool,
             }),
             errors=errors
         )
@@ -731,10 +748,8 @@ class JellyHAOptionsFlowHandler(config_entries.OptionsFlow):
             self._user_id = user_input[CONF_USER_ID]
             
             # Fetch libraries for the new user
-            session = async_get_clientsession(self.hass)
-            api = JellyfinApiClient(self._server_url, session=session, api_key=self._api_key)
             try:
-                self._libraries = await api.get_libraries(self._user_id)
+                self._libraries = await self._api.get_libraries(self._user_id)
                 return await self.async_step_library_select()
             except Exception as err:
                 _LOGGER.error("Error fetching libraries: %s", err)

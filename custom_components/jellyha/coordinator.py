@@ -37,6 +37,7 @@ from .const import (
     CONF_REFRESH_INTERVAL,
     CONF_SERVER_URL,
     CONF_USER_ID,
+    CONF_ADMIN_PRIVILEGES,
     DEFAULT_IMAGE_HEIGHT,
     DEFAULT_IMAGE_QUALITY,
     DEFAULT_REFRESH_INTERVAL,
@@ -117,6 +118,7 @@ class JellyHALibraryCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             server_url=self.entry.data[CONF_SERVER_URL],
             api_key=self.entry.data[CONF_API_KEY],
             session=session,
+            admin_privileges=self.entry.data[CONF_ADMIN_PRIVILEGES],
         )
 
         try:

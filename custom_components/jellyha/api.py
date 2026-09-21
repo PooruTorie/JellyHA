@@ -42,12 +42,14 @@ class JellyfinApiClient:
         server_url: str,
         session: aiohttp.ClientSession,
         api_key: str | None = None,
+        admin_privileges: bool = True,
     ) -> None:
         """Initialize the API client."""
         self._server_url = server_url.rstrip("/")
         self._api_key = api_key
         self._session = session
         self._user_id: str | None = None
+        self._admin_privileges = admin_privileges
 
     @property
     def server_url(self) -> str:
@@ -182,7 +184,6 @@ class JellyfinApiClient:
         }
         
         url = urljoin(self._server_url + "/", "Users/AuthenticateByName")
-        url = urljoin(self._server_url + "/", "Users/AuthenticateByName")
         
         try:
             async with self._session.post(
@@ -205,10 +206,30 @@ class JellyfinApiClient:
 
     async def get_users(self) -> list[dict[str, Any]]:
         """Get list of users."""
+        if not self._admin_privileges:
+            user_me = await self._request("GET", "/Users/Me")
+            return [user_me]
         return await self._request("GET", "/Users")
 
     async def get_devices(self) -> list[dict[str, Any]]:
         """Get list of registered devices from Jellyfin."""
+        if not self._admin_privileges:
+            sessions = await self.get_sessions()
+            devices = []
+            device_ids = []
+            for s in sessions:
+                device_id = s.get("DeviceId");
+                if device_id in device_ids:
+                    continue
+                device_info = {
+                    "Id": device_id,
+                    "Name": s.get("DeviceName"),
+                    "LastUserId": s.get("UserId"),
+                    "LastUserName": s.get("UserName"),
+                }
+                device_ids.append(device_id)
+                devices.append(device_info)
+            return devices
         result = await self._request("GET", "/Devices")
         if isinstance(result, dict):
             return result.get("Items", [])

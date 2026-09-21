@@ -29,7 +29,11 @@
                 "description": "Geben Sie Ihre Jellyfin-Anmeldedaten ein",
                 "data": {
                     "username": "Benutzername",
-                    "password": "Passwort"
+                    "password": "Passwort",
+                    "admin_privileges": "Admin-Rechte"
+                },
+                "data_description": {
+                    "admin_privileges": "Wenn Sie über Administratorrechte verfügen, können Sie auswählen, welchen Benutzer Sie für das Abrufen von Bibliotheksdaten verwenden möchten. Andernfalls verwendet die Integration die angegebenen Anmeldedaten."
                 }
             },
             "user_select": {
@@ -109,7 +113,11 @@
                 "description": "Geben Sie Ihre Jellyfin-Anmeldedaten ein",
                 "data": {
                     "username": "Benutzername",
-                    "password": "Passwort"
+                    "password": "Passwort",
+                    "admin_privileges": "Admin-Rechte"
+                },
+                "data_description": {
+                    "admin_privileges": "Wenn Sie über Administratorrechte verfügen, können Sie auswählen, welchen Benutzer Sie für das Abrufen von Bibliotheksdaten verwenden möchten. Andernfalls verwendet die Integration die angegebenen Anmeldedaten."
                 }
             },
             "user_select": {
